@@ -1,0 +1,3 @@
+## pingpong tracking using opencv-rs
+
+soon...
