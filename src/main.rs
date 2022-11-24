@@ -2,6 +2,7 @@ use opencv::core::{Scalar, VecN};
 use opencv::types::VectorOfMat;
 use opencv::videoio::VideoCapture;
 use opencv::{core, highgui, imgproc, prelude::*, videoio, Result};
+use std::env;
 use std::{thread, time::Duration};
 
 fn get_frame(vid_stream: &mut VideoCapture) -> Option<Mat> {
@@ -16,8 +17,8 @@ fn get_frame(vid_stream: &mut VideoCapture) -> Option<Mat> {
       &frame,
       &mut reduced,
       reduced_size,
-      0.25,
-      0.25,
+      1.0,
+      1.0,
       imgproc::INTER_LINEAR,
     )
     .unwrap();
@@ -178,18 +179,27 @@ impl Tracker {
 }
 
 fn main() -> Result<()> {
-  let window = "video capture";
+  let window = "open-cv rust ball tracking";
 
-  // define the lower and upper boundaries of the "green"
+  // define the lower and upper boundaries color.
   // ball in the HSV color space. NB the hue range in
   // opencv is 180, normally it is 360
-  let green_lower = Scalar::new(50.0f64, 50.0f64, 50.0f64, 0.0f64);
-  let green_upper = Scalar::new(70.0f64, 255.0f64, 255.0f64, 0.0f64);
+  // let target_color_lower = Scalar::new(50.0f64, 50.0f64, 50.0f64, 0.0f64); //green
+  // let target_color_upper = Scalar::new(70.0f64, 255.0f64, 255.0f64, 0.0f64); //green
+
+  let target_color_lower = Scalar::new(110.0f64, 50.0f64, 50.0f64, 0.0f64);
+  let target_color_upper = Scalar::new(130.3f64, 255.0f64, 255.0f64, 0.0f64);
 
   highgui::named_window(window, 1)?;
   highgui::set_window_property(window, highgui::WND_PROP_TOPMOST, 1.0f64)?;
+  let mut cam;
 
-  let mut cam = videoio::VideoCapture::from_file("ball_tracking_example.mp4", videoio::CAP_ANY)?;
+  // [TODO] handle this gracefully.
+  if env::args().len() > 1 {
+    cam = videoio::VideoCapture::from_file("ball_tracking_example.mp4", videoio::CAP_ANY)?;
+  } else {
+    cam = videoio::VideoCapture::new(0, videoio::CAP_ANY)?;
+  }
 
   // allow the camera or video file to warm up
   thread::sleep(Duration::from_millis(200));
@@ -197,7 +207,7 @@ fn main() -> Result<()> {
   let mut frame = get_frame(&mut cam).unwrap();
   let core::Size { width, height } = frame.size().unwrap();
   println!("Size:: width={:?}, height:{:?}", width, height);
-  let mut greentracker = Tracker::new(height, width, green_lower, green_upper);
+  let mut greentracker = Tracker::new(height, width, target_color_lower, target_color_upper);
 
   let mut more_frames = true;
 
