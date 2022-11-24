@@ -11,15 +11,13 @@ fn get_frame(vid_stream: &mut VideoCapture) -> Option<Mat> {
     None
   } else {
     let mut reduced = Mat::default();
+    let reduced_size = reduced.size().unwrap();
     imgproc::resize(
       &frame,
       &mut reduced,
-      core::Size {
-        width: 600,
-        height: 0,
-      },
-      0.25f64,
-      0.25f64,
+      reduced_size,
+      0.25,
+      0.25,
       imgproc::INTER_LINEAR,
     )
     .unwrap();
@@ -39,12 +37,12 @@ struct Tracker {
 impl Tracker {
   fn new(height: i32, width: i32, color_lower: Scalar, color_upper: Scalar) -> Self {
     Self {
+      color_lower,
+      color_upper,
       midx: width / 2,
       midy: height / 2,
       xoffset: 0,
       yoffset: 0,
-      color_lower,
-      color_upper,
     }
   }
 
@@ -55,6 +53,9 @@ impl Tracker {
     let mut eroded = Mat::default();
     let mut dilated = Mat::default();
     let mut cnts = VectorOfMat::new();
+
+    // resize the frame, blur it, and convert it to the HSV
+    // color space
     imgproc::gaussian_blur(
       frame,
       &mut blurred,
@@ -64,34 +65,47 @@ impl Tracker {
       },
       0.0f64,
       0.0f64,
-      imgproc::INTER_LINEAR,
+      core::BORDER_DEFAULT,
     )
     .unwrap();
+    imgproc::cvt_color(&blurred, &mut hsv, imgproc::COLOR_BGR2HSV, 0).unwrap();
 
-    imgproc::cvt_color(&blurred, &mut hsv, imgproc::COLOR_BGR2GRAY, 0).unwrap();
+    // construct a mask for the color then perform
+    // a series of dilations and erosions to remove any small
+    // blobs left in the mask
+    let point_center = core::Point::new(-1, -1);
+    let border_const = core::BORDER_CONSTANT;
+    let border_value = imgproc::morphology_default_border_value().unwrap();
+    let kernel = imgproc::get_structuring_element(
+      imgproc::MORPH_RECT,
+      core::Size::from((5, 5)),
+      core::Point::from((-1, -1)),
+    )
+    .unwrap();
     core::in_range(&hsv, &self.color_lower, &self.color_upper, &mut mask).unwrap();
     imgproc::erode(
       &mask,
       &mut eroded,
-      &mask,
-      core::Point::new(-1, -1),
+      &kernel,
+      point_center,
       2,
-      core::BORDER_CONSTANT,
-      imgproc::morphology_default_border_value().unwrap(),
+      border_const,
+      border_value,
     )
     .unwrap();
-
     imgproc::dilate(
       &eroded,
       &mut dilated,
-      &eroded,
-      core::Point::new(-1, -1),
+      &kernel,
+      point_center,
       2,
-      core::BORDER_CONSTANT,
-      imgproc::morphology_default_border_value().unwrap(),
+      border_const,
+      border_value,
     )
     .unwrap();
 
+    // find contours in the mask and initialize the current
+    // (x, y) center of the ball
     imgproc::find_contours(
       &dilated,
       &mut cnts,
@@ -101,28 +115,35 @@ impl Tracker {
     )
     .unwrap();
 
+    // only proceed if at least one contour was found
     if !cnts.is_empty() {
-      let c = &cnts
+      // find the largest contour in the mask, then use
+      // it to compute the minimum enclosing circle and
+      // centroid
+      let contour = &cnts
         .iter()
         .max_by(|a, b| {
           let _a = imgproc::contour_area(a, false).unwrap();
-          let _b = imgproc::contour_area(b, false).unwrap_or(0.0);
+          let _b = imgproc::contour_area(b, false).unwrap();
           _a.partial_cmp(&_b).unwrap()
         })
         .unwrap();
 
-      let mut center = core::Point2f::default();
+      let mut enclosed_pos = core::Point2f::default();
       let mut radius = 0.0f32;
 
-      imgproc::min_enclosing_circle(&c, &mut center, &mut radius).unwrap();
+      imgproc::min_enclosing_circle(&contour, &mut enclosed_pos, &mut radius).unwrap();
 
-      // M = cv2.moments(c)
-      // center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+      let M = imgproc::moments(&contour, false).unwrap();
+      let ball_center = core::Point::new((M.m10 / M.m00) as i32, (M.m01 / M.m00) as i32);
 
+      // only proceed if the radius meets a minimum size
       if radius > 10.0 {
+        // draw the circle and centroid on the frame,
+        // then update the list of tracked points
         imgproc::circle(
           frame,
-          core::Point::new(center.x as i32, center.y as i32),
+          core::Point::new(enclosed_pos.x as i32, enclosed_pos.y as i32),
           radius as i32,
           Scalar::new(0f64, 255f64, 255f64, 0f64),
           2,
@@ -133,7 +154,7 @@ impl Tracker {
 
         imgproc::circle(
           frame,
-          core::Point::new(center.x as i32, center.y as i32),
+          ball_center,
           5,
           Scalar::new(0f64, 0f64, 255f64, 0f64),
           -1,
@@ -141,8 +162,8 @@ impl Tracker {
           0,
         )
         .unwrap();
-        self.xoffset = (center.x as i32) - self.midx;
-        self.yoffset = self.midy - (center.y as i32);
+        self.xoffset = (ball_center.x as i32) - self.midx;
+        self.yoffset = self.midy - (ball_center.y as i32);
       } else {
         self.xoffset = 0;
         self.yoffset = 0;
@@ -158,31 +179,39 @@ impl Tracker {
 
 fn main() -> Result<()> {
   let window = "video capture";
+
+  // define the lower and upper boundaries of the "green"
+  // ball in the HSV color space. NB the hue range in
+  // opencv is 180, normally it is 360
   let green_lower = Scalar::new(50.0f64, 50.0f64, 50.0f64, 0.0f64);
   let green_upper = Scalar::new(70.0f64, 255.0f64, 255.0f64, 0.0f64);
+
   highgui::named_window(window, 1)?;
+  highgui::set_window_property(window, highgui::WND_PROP_TOPMOST, 1.0f64)?;
+
   let mut cam = videoio::VideoCapture::from_file("ball_tracking_example.mp4", videoio::CAP_ANY)?;
+
+  // allow the camera or video file to warm up
   thread::sleep(Duration::from_millis(200));
-  let mut frame = Mat::default();
-  cam.read(&mut frame)?;
-  let mut reduced = get_frame(&mut cam).unwrap();
-  let core::Size { width, height } = reduced.size().unwrap();
+
+  let mut frame = get_frame(&mut cam).unwrap();
+  let core::Size { width, height } = frame.size().unwrap();
+  println!("Size:: width={:?}, height:{:?}", width, height);
   let mut greentracker = Tracker::new(height, width, green_lower, green_upper);
 
   let mut more_frames = true;
 
   while more_frames {
-    greentracker.track(&mut reduced);
+    greentracker.track(&mut frame);
 
-    highgui::imshow(window, &reduced)?;
-    if highgui::wait_key(1)? == 1 & 0xff {
+    highgui::imshow(window, &frame)?;
+    if highgui::wait_key(10)? > 0 {
       break;
     }
 
-    if get_frame(&mut cam).is_none() {
-      more_frames = false;
-    } else {
-      reduced = get_frame(&mut cam).unwrap();
+    match get_frame(&mut cam) {
+      Some(f) => frame = f,
+      None => more_frames = false,
     }
   }
 
