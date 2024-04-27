@@ -75,19 +75,18 @@ class BallTracker:
       center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
       if radius > 5:
-        # cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
+        self.pts.appendleft(center)
+        cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
         cv2.circle(frame, center, 4, (0, 0, 255), -1)
-        cv2.putText(frame,"pingpong",(int(x)-10, int(y)-10),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,255),1)
-        self.client.send_message("/test_plotter/1", (center[0] / 452, center[1] / 260))
+        cv2.putText(frame,"TARGET",(int(x)-10, int(y)-20),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,255),1)
+        self.client.send_message("/test_plotter/1", (center[0] / 320, center[1] / 240))
 
-    # self.pts.appendleft(center)
+    for i in range(1, len(self.pts)):
+      if self.pts[i - 1] is None or self.pts[i] is None:
+        continue
 
-    # for i in range(1, len(self.pts)):
-    #   if self.pts[i - 1] is None or self.pts[i] is None:
-    #     continue
-
-    #   thickness = int(np.sqrt(self.args["buffer"] / float(i + 1)) * 1.5)
-    #   cv2.line(frame, self.pts[i - 1], self.pts[i], (0, 0, 255), thickness)
+      thickness = int(np.sqrt(self.args["buffer"] / float(i + 1)) * 2)
+      cv2.line(frame, self.pts[i - 1], self.pts[i], (0, 0, 255), thickness)
 
     # processedFrame, M = tableMap(frame, top_left2,top_right2, bottom_left2, bottom_right2)
     # cv2.rectangle(processedFrame, (0, 0), (967, 1585), (227, 71, 43), 2000)
