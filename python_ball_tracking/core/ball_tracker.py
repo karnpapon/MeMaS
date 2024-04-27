@@ -1,4 +1,3 @@
-import imutils
 import cv2
 import numpy as np
 from collections import deque
@@ -38,12 +37,10 @@ class BallTracker:
     self.client = client
 
   def detect_ball(self, frame: cv2.typing.MatLike):
-    frame = imutils.resize(frame, width=600)
-
-    mask = np.zeros(frame.shape[:2], np.uint8)
-    cv2.fillPoly(mask, point_matrix1, (255, 255, 255))
-    frame = cv2.bitwise_and(frame, frame, mask=mask)
-
+    # frame = imutils.resize(frame, width=600)
+    # mask = np.zeros(frame.shape[:2], np.uint8)
+    # cv2.fillPoly(mask, point_matrix1, (255, 255, 255))
+    # frame = cv2.bitwise_and(frame, frame, mask=mask)
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
@@ -77,7 +74,7 @@ class BallTracker:
       # finding centriod formular: https://learnopencv.com/find-center-of-blob-centroid-using-opencv-cpp-python/
       center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-      if radius > 2:
+      if radius > 5:
         # cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
         cv2.circle(frame, center, 4, (0, 0, 255), -1)
         cv2.putText(frame,"pingpong",(int(x)-10, int(y)-10),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,255),1)

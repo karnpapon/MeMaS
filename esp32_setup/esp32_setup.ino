@@ -33,7 +33,7 @@
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char* ssid = "ESP32-CAM Access Point";
+const char* ssid = "ESP32CAM_AP";
 const char* password = "123456789";
 
 void startCameraServer();
