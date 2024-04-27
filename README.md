@@ -1,8 +1,15 @@
-## PingPong tracker
+- `/python_ball_tracking`: a Python tool for tracking ping-pong ball by `OpenCV`
+- `/rust_ball_tracking`: a Rust tool for tracking ping-pong ball by `OpenCV`
+- `/esp32_setup`: setup esp32 (the easiest way is using `Arduino IDE`)
+- `/sound_map`: a SuperCollider tool for mapping ball movement to sound corpus.
 
-a table-tennis ball tracking CLI-tool using [opencv-rust](https://github.com/twistedfall/opencv-rust), a Rust bindings for [ OpenCV ](https://github.com/opencv/opencv) a computer vision tool. based on [ PyImageSearch ](https://pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/)
 
-## Quickstart
+## setup
+- `export PYTHONPATH=.`, expose port so python can find relative path   
+- `python3 algo/warp_perspective_video.py --video resources/pp2.mp4`, test example
 
-- `cargo run` for accessing device camera.
-- `cargo run -- --example "default"`, will run example program by reading "ball_tracking_example.mp4" file from local machine.
+
+## setup vscode + arduino
+- https://medium.com/@thomas.kilmar/arduino-cli-with-visual-studio-code-on-macos-d2ad32ff0276
+- `arduino-cli config init`, to init `arduino-cli.yaml`
+- set library `enable_unsafe_install: true`, then install downloaded `esp32cam` library by `arduino-cli lib install --zip-path /Users/xxxxxxxx/Downloads/esp32cam.zip`

@@ -1,0 +1,7 @@
+{
+    "sketch": "esp32_setup/esp32_setup.ino",
+    "configuration": "CPUFreq=240,FlashMode=qio,PartitionScheme=huge_app,FlashFreq=80,DebugLevel=none,EraseFlash=none",
+    "board": "espressif:esp32:esp32cam",
+    "output": "./build",
+    "port": "/dev/tty.usbserial-10"
+}

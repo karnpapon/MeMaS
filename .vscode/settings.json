@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.zig": "zig",
+    "__bit_reference": "cpp",
+    "string_view": "cpp"
+  }
+}
