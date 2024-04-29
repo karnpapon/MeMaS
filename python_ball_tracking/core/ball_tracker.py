@@ -1,4 +1,5 @@
 import cv2
+import imutils
 import numpy as np
 from collections import deque
 from typing import Any
@@ -36,25 +37,39 @@ class BallTracker:
     self.args = args
     self.client = client
 
+  def mask_area(frame: cv2.typing.MatLike):
+    """
+    mask specific area, eg. detect ball moving only within table area (top-view, static camera)
+    """
+    frame = imutils.resize(frame, width=600)
+    mask = np.zeros(frame.shape[:2], np.uint8)
+    cv2.fillPoly(mask, point_matrix1, (255, 255, 255))
+    frame = cv2.bitwise_and(frame, frame, mask=mask) 
+
+  def with_trackbar_adjustment():
+    """
+    trackbar for finding the target color range (HSV color space)
+    """
+    
+    l_h = cv2.getTrackbarPos("LH", "Tracking")
+    l_s = cv2.getTrackbarPos("LS", "Tracking")
+    l_v = cv2.getTrackbarPos("LV", "Tracking")
+
+    u_h = cv2.getTrackbarPos("UH", "Tracking")
+    u_s = cv2.getTrackbarPos("US", "Tracking")
+    u_v = cv2.getTrackbarPos("UV", "Tracking")
+
+    l_b = np.array([l_h, l_s, l_v])
+    u_b = np.array([u_h, u_s, u_v])
+
+    return l_b, u_b
+
   def detect_ball(self, frame: cv2.typing.MatLike):
-    # frame = imutils.resize(frame, width=600)
-    # mask = np.zeros(frame.shape[:2], np.uint8)
-    # cv2.fillPoly(mask, point_matrix1, (255, 255, 255))
-    # frame = cv2.bitwise_and(frame, frame, mask=mask)
+    # self.mask_area(frame)
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
-    # l_h = cv2.getTrackbarPos("LH", "Tracking")
-    # l_s = cv2.getTrackbarPos("LS", "Tracking")
-    # l_v = cv2.getTrackbarPos("LV", "Tracking")
-
-    # u_h = cv2.getTrackbarPos("UH", "Tracking")
-    # u_s = cv2.getTrackbarPos("US", "Tracking")
-    # u_v = cv2.getTrackbarPos("UV", "Tracking")
-
-    # l_b = np.array([l_h, l_s, l_v])
-    # u_b = np.array([u_h, u_s, u_v])
-
+    # l_b, u_b = with_trackbar_adjustment()
     # mask = cv2.inRange(hsv, l_b, u_b)
     mask = cv2.inRange(hsv, self.color_lower, self.color_upper)
     mask = cv2.erode(mask, None, iterations=2)
@@ -65,9 +80,7 @@ class BallTracker:
 
    # only proceed if at least one contour was found
     if len(contours) > 0:
-      # find the largest contour in the mask, then use
-      # it to compute the minimum enclosing circle and
-      # centroid
+      # find the largest contour in the mask, then use it to compute the minimum enclosing circle and centroid
       c = max(contours, key=cv2.contourArea)
       ((x, y), radius) = cv2.minEnclosingCircle(c)
       M = cv2.moments(c)
@@ -88,18 +101,6 @@ class BallTracker:
       thickness = int(np.sqrt(self.args["buffer"] / float(i + 1)) * 2)
       cv2.line(frame, self.pts[i - 1], self.pts[i], (0, 0, 255), thickness)
 
-    # processedFrame, M = tableMap(frame, top_left2,top_right2, bottom_left2, bottom_right2)
-    # cv2.rectangle(processedFrame, (0, 0), (967, 1585), (227, 71, 43), 2000)
-    # processedFrame = showLines(processedFrame)
-
-    # processedFrame = showPoint(frame, M, center)
-    # processedFrame = showPoint(processedFrame, M, [body2.xAvg, body2.yAvg])
-
-    # Draw circle for each point
-    # cv2.circle(frame,top_left2,5,(0,0,255),cv2.FILLED)
-    # cv2.circle(frame,top_right2,5,(0,255,0),cv2.FILLED)
-    # cv2.circle(frame,bottom_left2,5,(255,0,0),cv2.FILLED)
-    # cv2.circle(frame,bottom_right2,5,(255,255,0),cv2.FILLED)
     cv2.imshow("frame", frame)
     # cv2.imshow("warp_frame", frame)
     # cv2.imshow("mask", mask)
