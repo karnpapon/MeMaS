@@ -12,6 +12,10 @@ bottom_right = [140, 260]
 point_matrix1 = np.int32([[top_left,top_right, bottom_left, bottom_right]])
 
 
+#same size as SuperCollider plotter's window
+bound_width = 592 
+bound_height = 460
+
 # def nothing(x):
 #   pass
 
@@ -41,7 +45,6 @@ class BallTracker:
     """
     mask specific area, eg. detect ball moving only within table area (top-view, static camera)
     """
-    frame = imutils.resize(frame, width=600)
     mask = np.zeros(frame.shape[:2], np.uint8)
     cv2.fillPoly(mask, point_matrix1, (255, 255, 255))
     frame = cv2.bitwise_and(frame, frame, mask=mask) 
@@ -66,6 +69,7 @@ class BallTracker:
 
   def detect_ball(self, frame: cv2.typing.MatLike):
     # self.mask_area(frame)
+    frame = imutils.resize(frame, width=600)
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
@@ -87,12 +91,12 @@ class BallTracker:
       # finding centriod formular: https://learnopencv.com/find-center-of-blob-centroid-using-opencv-cpp-python/
       center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-      if radius > 5:
+      if radius > 2:
         self.pts.appendleft(center)
         cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
         cv2.circle(frame, center, 4, (0, 0, 255), -1)
         cv2.putText(frame,"TARGET",(int(x)-10, int(y)-20),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,255),1)
-        self.client.send_message("/test_plotter/1", (center[0] / 320, center[1] / 240))
+        self.client.send_message("/test_plotter/1", (center[0] / bound_width, center[1] / bound_height))
 
     for i in range(1, len(self.pts)):
       if self.pts[i - 1] is None or self.pts[i] is None:
