@@ -12,11 +12,13 @@ s.waitForBoot{
 	n = NanoKontrol();  // https://github.com/karnpapon/NanoKontrol
 	s.plotTree;
 	~sampler_engine = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds/");
-}
 
+	~sampler_engine = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
+
+}
 )
 
-/*~sampler_engine.analyze;
+~sampler_engine.analyze;
 ~sampler_engine.map_dataset;
 
 (
@@ -24,7 +26,9 @@ s.waitForBoot{
 ~sampler_engine.map_kd_tree(0.01);
 )
 
-~sampler_engine.exportProcessedData("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds_data/", "my-live-perf-data");*/
+~sampler_engine.exportProcessedData("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds_data/", "my-live-perf-data");
+
+~sampler_engine.exportProcessedData("/Users/karnpaponboonput/Desktop/test-pref-data/", "my-live-perf-data");
 
 // [2]: for using in \demo_corpus
 (
@@ -266,7 +270,7 @@ OSCdef(\osc_corpus, {|msg, time, addr, recvPort|
 ~sampler_engine.out_target_(~src2MixerChannel);
 
 
-~sampler_engine.outbus_(2);
+~sampler_engine.outbus_(0);
 
 (
 ~sampler_engine.listen;

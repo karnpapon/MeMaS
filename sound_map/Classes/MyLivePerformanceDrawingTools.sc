@@ -20,7 +20,7 @@ MyPlotter : FluidViewer {
 	<userView, <pointSize = 6, pointSizeScale = 1, dict_internal,
 	<dict, <>pen_tool_osc, <>pen_tool_mouse, <>pen_tool_nearest, <is_drawn = false,
 	shape = \circle, highlightIdentifiersArray, categoryColors,
-	point_color="#000000", bg_color="#F1F1F1", current_point_color="#000000", neighbor_color="#1865FE";
+	point_color="#000000", bg_color="#F1F1F1", current_point_color="#ff500d", neighbor_color="#1865FE";
 
 	*new {
 		arg parent, bounds, dict, onViewInit, mouseMoveAction,
@@ -104,7 +104,7 @@ MyPlotter : FluidViewer {
 		arg identifier;
 		identifier = identifier.asSymbol;
 		if (dict_internal.at(identifier).notNil) {
-			dict_internal.at(identifier).postln;
+			^dict_internal.at(identifier);
 		};
 	}
 
@@ -258,7 +258,7 @@ MyPlotter : FluidViewer {
 				userView.drawFunc = {
 					arg viewport;
 
-					var x1 = pen_tool_mouse.asPoint.x;
+					var x1=pen_tool_mouse.asPoint.x;
 					var y1=pen_tool_mouse.asPoint.y;
 					var x2=pen_tool_nearest.asPoint.x;
 					var y2=pen_tool_nearest.asPoint.y;
@@ -303,10 +303,18 @@ MyPlotter : FluidViewer {
 
 					view.drawFunc = {
 						arg viewport;
-						var x1 = pen_tool_mouse.asPoint.x;
+						var x1=pen_tool_mouse.asPoint.x;
 						var y1=pen_tool_mouse.asPoint.y;
 						var x2=pen_tool_nearest.asPoint.x;
 						var y2=pen_tool_nearest.asPoint.y;
+
+						// var vw = viewport.bounds.width;
+						// var vh = viewport.bounds.height;
+
+						// var	x2_dyn = x2.linlin(zoomxmin*vw,zoomxmax*vw,0,vw,nil) - (pointSize/2);
+						// var y2_dyn = y2.linlin(zoomymax,zoomymin,0,vh,nil) - (pointSize/2);
+
+						// (zoomymax: zoomymax, zoomymin: zoomymin, zoomDragStart: zoomDragStart).postln;
 
 						this.drawGradientLine(
 							x1@y1,
@@ -320,209 +328,209 @@ MyPlotter : FluidViewer {
 
 						this.drawDataPoints(viewport, zoomRect);
 						this.drawHighlight(viewport);
+						};
+						this.refresh;
 					};
-					this.refresh;
 				};
-			};
 
-			userView.mouseUpAction = {
-				arg view, x, y, modifiers, buttonNumber, clickCount;
+				userView.mouseUpAction = {
+					arg view, x, y, modifiers, buttonNumber, clickCount;
 
-				if(zoomRect.notNil,{
-					var xmin_new, xmax_new, ymin_new, ymax_new;
+					if(zoomRect.notNil,{
+						var xmin_new, xmax_new, ymin_new, ymax_new;
 
-					zoomRect = nil;
+						zoomRect = nil;
 
-					xmin_new = min(x,zoomDragStart.x).linlin(0,userView.bounds.width,zoomxmin,zoomxmax,nil);
-					xmax_new = max(x,zoomDragStart.x).linlin(0,userView.bounds.width,zoomxmin,zoomxmax,nil);
+						xmin_new = min(x,zoomDragStart.x).linlin(0,userView.bounds.width,zoomxmin,zoomxmax,nil);
+						xmax_new = max(x,zoomDragStart.x).linlin(0,userView.bounds.width,zoomxmin,zoomxmax,nil);
 
-					// it looks like maybe these are wrong, with max on top and min on bottom, but they are
-					// correct. this accounts for the fact that for the pixels, the lower numbers are higher
-					// in the frame and vice versa, but for the plot values the lower numbers are lower in
-					// the window.
-					ymin_new = max(y,zoomDragStart.y).linlin(userView.bounds.height,0,zoomymin,zoomymax,nil);
-					ymax_new = min(y,zoomDragStart.y).linlin(userView.bounds.height,0,zoomymin,zoomymax,nil);
+						// it looks like maybe these are wrong, with max on top and min on bottom, but they are
+						// correct. this accounts for the fact that for the pixels, the lower numbers are higher
+						// in the frame and vice versa, but for the plot values the lower numbers are lower in
+						// the window.
+						ymin_new = max(y,zoomDragStart.y).linlin(userView.bounds.height,0,zoomymin,zoomymax,nil);
+						ymax_new = min(y,zoomDragStart.y).linlin(userView.bounds.height,0,zoomymin,zoomymax,nil);
 
-					zoomxmin = xmin_new;
-					zoomxmax = xmax_new;
-					zoomymin = ymin_new;
-					zoomymax = ymax_new;
+						zoomxmin = xmin_new;
+						zoomxmax = xmax_new;
+						zoomymin = ymin_new;
+						zoomymax = ymax_new;
+
+						this.refresh;
+					});
 
 					this.refresh;
-				});
 
-				this.refresh;
+					reportMouseActivity.(this,x,y,modifiers,buttonNumber,clickCount);
+				};
 
-				reportMouseActivity.(this,x,y,modifiers,buttonNumber,clickCount);
-			};
+				this.background_(bg_color);
 
-			this.background_(bg_color);
+				if (standalone) { parent.front };
+			}.defer;
+		}
 
-			if (standalone) { parent.front };
-		}.defer;
-	}
+		asView { ^userView }
 
-	asView { ^userView }
+		asParent { ^parent }
 
-	asParent { ^parent }
+		asPenToolOsc { ^pen_tool_osc }
 
-	asPenToolOsc { ^pen_tool_osc }
+		asPenToolMouse { ^pen_tool_mouse }
 
-	asPenToolMouse { ^pen_tool_mouse }
+		asPenToolNearest { ^pen_tool_nearest }
 
-	asPenToolNearest { ^pen_tool_nearest }
+		asPenToolOsc_ { |newValue|
+			pen_tool_osc = newValue;
+		}
 
-	asPenToolOsc_ { |newValue|
-		pen_tool_osc = newValue;
-	}
+		asPenToolMouse_ { |newValue|
+			pen_tool_mouse = newValue;
+			this.refresh;
+		}
 
-	asPenToolMouse_ { |newValue|
-		pen_tool_mouse = newValue;
-		this.refresh;
-	}
+		asPenToolNearest_ { |newValue|
+			pen_tool_nearest = newValue;
+			this.refresh;
+		}
 
-	asPenToolNearest_ { |newValue|
-		pen_tool_nearest = newValue;
-		this.refresh;
-	}
+		drawDataPoints {
+			arg viewport, zoomRect;
+			var w = viewport.bounds.width, h = viewport.bounds.height, nearestLineWidth=4;
+			/*	var x1 = pen_tool_osc.asPoint.x;
+			var y1 = pen_tool_osc.asPoint.y;
+			var x2 = pen_tool_nearest.asPoint.x;
+			var y2 = pen_tool_nearest.asPoint.y;*/
 
-	drawDataPoints {
-		arg viewport, zoomRect;
-		var w = viewport.bounds.width, h = viewport.bounds.height, nearestLineWidth=4;
-		// var x1 = pen_tool_osc.asPoint.x;
-		// var y1 = pen_tool_osc.asPoint.y;
-		// var x2 = pen_tool_nearest.asPoint.x;
-		// var y2 = pen_tool_nearest.asPoint.y;
+			if(dict_internal.notNil,{
+				dict_internal.keysValuesDo({
+					arg key, pt;
+					var pointSize_, scaledx, scaledy, color;
 
-		if(dict_internal.notNil,{
-			dict_internal.keysValuesDo({
-				arg key, pt;
-				var pointSize_, scaledx, scaledy, color;
-
-				pointSize_ = pointSize * pt.size;
-				pointSize_ = pointSize_ * pointSizeScale;
-
-				scaledx = pt.x.linlin(zoomxmin,zoomxmax,0,w,nil) - (pointSize_/2);
-				scaledy = pt.y.linlin(zoomymax,zoomymin,0,h,nil) - (pointSize_/2);
-
-				Pen.push;
-				Color.fromHexString(point_color).setFill;
-				shape.switch(
-					\square, {
-						Pen.addRect(Rect(scaledx,scaledy,pointSize_,pointSize_))
-					},
-					\circle, {
-						Pen.addOval(Rect(scaledx,scaledy,pointSize_,pointSize_))
-					}
-				);
-				Pen.draw;
-				Pen.pop;
-			});
-
-			if(zoomRect.notNil,{
-				// Pen.strokeColor_(Color.black);
-				// Pen.addRect(zoomRect);
-				// Pen.draw(2);
-
-				// this.drawGradientLine(
-				//   x1@y1,
-				//   x2@y2,
-				//   "asPenToolMouse_",
-				//   "asPenToolNearest_",
-				//   nearestLineWidth,
-				// );
-
-			});
-		});
-	}
-
-	drawHighlight {
-		arg viewport;
-		var w = viewport.bounds.width, h = viewport.bounds.height;
-
-		if(highlightIdentifiersArray.notNil,{
-			dict_internal.keysValuesDo({
-				arg key, pt;
-				var pointSize_, scaledx, scaledy, color;
-				pointSize_ = pointSize * pt.size;
-
-				if (highlightIdentifiersArray.includes(key)) {
-					pointSize_ = pointSize_ * 2.3;
-					Pen.color = Color.fromHexString(neighbor_color);
+					pointSize_ = pointSize * pt.size;
 					pointSize_ = pointSize_ * pointSizeScale;
+
 					scaledx = pt.x.linlin(zoomxmin,zoomxmax,0,w,nil) - (pointSize_/2);
 					scaledy = pt.y.linlin(zoomymax,zoomymin,0,h,nil) - (pointSize_/2);
-					Pen.addOval(Rect(scaledx,scaledy,pointSize_,pointSize_));
+
+					Pen.push;
+					Color.fromHexString(point_color).setFill;
+					shape.switch(
+						\square, {
+							Pen.addRect(Rect(scaledx,scaledy,pointSize_,pointSize_))
+						},
+						\circle, {
+							Pen.addOval(Rect(scaledx,scaledy,pointSize_,pointSize_))
+						}
+					);
 					Pen.draw;
-				} {};
+					Pen.pop;
+				});
+
+				if(zoomRect.notNil,{
+					Pen.strokeColor_(Color.black);
+					Pen.addRect(zoomRect);
+					Pen.draw(2);
+
+					/*this.drawGradientLine(
+					x1@y1,
+					x2@y2,
+					"asPenToolMouse_",
+					"asPenToolNearest_",
+					nearestLineWidth,
+					);*/
+				});
 			});
-		});
+		}
 
-		this.refresh;
+		drawHighlight {
+			arg viewport;
+			var w = viewport.bounds.width, h = viewport.bounds.height;
+
+			if(highlightIdentifiersArray.notNil,{
+				dict_internal.keysValuesDo({
+					arg key, pt;
+					var pointSize_, scaledx, scaledy, color;
+					pointSize_ = pointSize * pt.size;
+
+					if (highlightIdentifiersArray.includes(key)) {
+						pointSize_ = pointSize_ * 2.3;
+						Pen.color = Color.fromHexString(neighbor_color);
+						pointSize_ = pointSize_ * pointSizeScale;
+						scaledx = pt.x.linlin(zoomxmin,zoomxmax,0,w,nil) - (pointSize_/2);
+						scaledy = pt.y.linlin(zoomymax,zoomymin,0,h,nil) - (pointSize_/2);
+						Pen.addOval(Rect(scaledx,scaledy,pointSize_,pointSize_));
+						Pen.draw;
+					} {};
+				});
+			});
+
+			this.refresh;
+		}
+
+		drawGradientLine { |from,to, from_as, to_as, lineWidth, canvas_x, canvas_y|
+
+			Pen.moveTo(from);
+			Pen.lineTo(to);
+			Pen.lineTo(to.x+lineWidth@to.y);
+			Pen.lineTo(from.x+lineWidth@from.y);
+			Pen.lineTo(from);
+			Pen.fillAxialGradient(
+				from,
+				to,
+				Color.fromHexString(current_point_color),
+				Color.fromHexString(neighbor_color)
+			);
+			Pen.push;
+			switch (from_as,
+				"asPenToolMouse_", { this.asPenToolMouse_([from.x, from.y]); },
+				"asPenToolMouseThis_", { this.asPenToolMouse_([canvas_x, canvas_y]); },
+				"asPenToolOsc_", { this.asPenToolOsc_([canvas_x, canvas_y]); },
+			);
+
+			switch (to_as,
+				"asPenToolNearest_", { this.asPenToolNearest_([to.x,to.y]); }
+			);
+			Color.fromHexString(current_point_color).setFill;
+
+			if (from_as == "asPenToolOsc_") {
+				Pen.addOval(Rect(canvas_x - 9, canvas_y - 9,18,18));
+			}{
+				Pen.addOval(Rect(from.x - 9, from.y - 9,18,18));
+			};
+			Pen.fill;
+			Pen.pop;
+		}
+
+		clearDrawing {
+			userView.drawFunc_({nil});
+			userView.clearDrawing;
+			highlightIdentifiersArray = nil;
+			this.refresh;
+		}
+
+
+		resetZoom {
+			zoomxmin = xmin;
+			zoomxmax = xmax;
+			zoomymin = ymin;
+			zoomymax = ymax;
+			this.refresh;
+		}
+
+		post {
+			"xmin:      %".format(xmin).postln;
+			"xmax:      %".format(xmax).postln;
+			"ymin:      %".format(ymin).postln;
+			"ymax:      %".format(ymax).postln;
+			"zoomxmin: %".format(zoomxmin).postln;
+			"zoomxmax: %".format(zoomxmax).postln;
+			"zoomymin: %".format(zoomymin).postln;
+			"zoomymax: %".format(zoomymax).postln;
+		}
+
+		close {
+			parent.close;
+		}
 	}
-
-	drawGradientLine { |from,to, from_as, to_as, lineWidth, canvas_x, canvas_y|
-
-		Pen.moveTo(from);
-		Pen.lineTo(to);
-		Pen.lineTo(to.x+lineWidth@to.y);
-		Pen.lineTo(from.x+lineWidth@from.y);
-		Pen.lineTo(from);
-		Pen.fillAxialGradient(
-			from,
-			to,
-			Color.fromHexString(current_point_color),
-			Color.fromHexString(neighbor_color)
-		);
-		Pen.push;
-		switch (from_as,
-			"asPenToolMouse_", { this.asPenToolMouse_([from.x, from.y]); },
-			"asPenToolMouseThis_", { this.asPenToolMouse_([canvas_x, canvas_y]); },
-			"asPenToolOsc_", { this.asPenToolOsc_([canvas_x, canvas_y]); },
-		);
-
-		switch (to_as,
-			"asPenToolNearest_", { this.asPenToolNearest_([to.x,to.y]); }
-		);
-		Color.fromHexString(current_point_color).setFill;
-
-		if (from_as == "asPenToolOsc_") {
-			Pen.addOval(Rect(canvas_x - 9, canvas_y - 9,18,18));
-		}{
-			Pen.addOval(Rect(from.x - 9, from.y - 9,18,18));
-		};
-		Pen.fill;
-		Pen.pop;
-	}
-
-	clearDrawing {
-		userView.drawFunc_({nil});
-		userView.clearDrawing;
-		highlightIdentifiersArray = nil;
-		this.refresh;
-	}
-
-
-	resetZoom {
-		zoomxmin = xmin;
-		zoomxmax = xmax;
-		zoomymin = ymin;
-		zoomymax = ymax;
-		this.refresh;
-	}
-
-	post {
-		"xmin:      %".format(xmin).postln;
-		"xmax:      %".format(xmax).postln;
-		"ymin:      %".format(ymin).postln;
-		"ymax:      %".format(ymax).postln;
-		"zoomxmin: %".format(zoomxmin).postln;
-		"zoomxmax: %".format(zoomxmax).postln;
-		"zoomymin: %".format(zoomymin).postln;
-		"zoomymax: %".format(zoomymax).postln;
-	}
-
-	close {
-		parent.close;
-	}
-}
+	

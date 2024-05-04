@@ -1,3 +1,7 @@
+## age0
+
+age0, (age-zero) is a set of tools for meta-geo live-performance utilising computer vision with corpus-based concatinative synthesis
+
 - `/sound_map`: a SuperCollider tool for mapping ball movement to sound corpus.
 - `/python_ball_tracking`: a Python tool for tracking ping-pong ball by `OpenCV`
 - `/rust_ball_tracking`: a Rust tool for tracking ping-pong ball by `OpenCV`

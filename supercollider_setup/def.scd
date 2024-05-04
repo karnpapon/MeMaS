@@ -6,8 +6,22 @@ Ndef(\nanite, {|nf=3, sf=0.0007, hpf=20000|
 )
 
 
-OFDinocap.ar(freq: 90).play
+d = OFDinocap.ar(freq: 90).play
 
+Ndef(\sin, {|freq= 500| Splay.ar(SinOsc.ar(freq, 0, 0.4))})
+Ndef(\sin)[1] = \xset -> Pbind(\freq, (Pseq([0, 5, 2], inf)+60).midicps)
+
+// + 0
+Ndef(\brus, {WhiteNoise.ar(0.5)})
+Ndef(\filter, {LPF.ar(Ndef.ar(\brus), 600)})
+Ndef(\filter).play
+Ndef(\filter).fadeTime= 5
+Ndef(\filter, {LPF.ar(Ndef.ar(\brus), 300)})
+Ndef(\fm).stop
+
+Routine {
+
+}
 
 (
 Ndef(\bromate, {
@@ -29,7 +43,9 @@ Ndef(\silk, {
 )
 
 Ndef(\depfm).gui
-Ndef(\silk).clear
+
+Ndef(\silk).free
+
 
 (
 Ndef(\vsaw, {|freq=90, amp=1.0, modFreq=0.5, ampMod=0.8, bsMul=600, bsAdd=800, bsBw=8|
@@ -71,7 +87,7 @@ Ndef(\demwi, {|rate=3, trigMin=18, trigMax=20, times=10, delay=0.05, decay=0.5, 
 )
 
 
-Ndef(\depfm).free
+Ndef(\demwi).gui2
 // + (1)
 (
 Ndef(\depfm, {|freqMin=5, freqMax=10, mul=20, add=80, rate=0.5, modFreq=2100, index=0.3, amp=0.5|
@@ -101,6 +117,7 @@ Ndef(\bloded).fadeTime_(1.5)
 Ndef(\bloded).xset(\freq, 120, \modFreq, 20)
 Ndef(\bloded).clear
 
+// + 3
 (
 Ndef(\demwav, {
 	var signal;
@@ -112,13 +129,15 @@ Ndef(\demwav, {
 }).play;
 )
 
+
+// + 4
 (
 Ndef(\fmdin, {|freq=66, mod=8, amp=1.0|
 		PMOsc.ar(freq, OFDinocap.ar(mod).range(10,100), 1.1) * 0.25 * amp
 	}).play
 )
 
-Ndef(\fmdin).gui
+Ndef(\nanite).gui2
 
 
 (
@@ -132,8 +151,7 @@ Ndef(\nanite, {|nf=3, sf=0.007, hpf=20000|
 Ndef(\opca).fadeTime_(1.2)
 
 (
-Ndef(\opca, {
- var sdm=1, size = 5, from=1, to=25,modFreq=10,modFrom=2,modTo=255, amp=0.25;
+Ndef(\opca, { |sdm=1, size = 5, from=1, to=25,modFreq=10,modFrom=2,modTo=255, amp=0.25|
  var trig, waveform;
  var sd = SampleDur.ir * sdm;
 var rand = Array.rand(size,from,to);
@@ -146,7 +164,7 @@ var rand = Array.rand(size,from,to);
 }).play
 )
 
-Ndef(\hectn).gui
+Ndef(\opca).gui
 
 Ndef(\opca).free
 
@@ -173,3 +191,15 @@ Ndef(\hectn, {
 	Splay.ar(snd * amp);
 }).play;
 )
+
+
+Ndef(\test).play
+Ndef(\test, {Splay.ar(WhiteNoise.ar(0.2))})
+Ndef(\test).filter(1, {|in| in*LFSaw.ar(4).max(0)})
+Ndef(\test).filter(2, {|in| in+CombN.ar(in, 0.1, [0.1, 0.08])})
+Ndef(\test).filter(3, {|in| CombN.ar(in, 1/400, 1/[400, 500])})
+Ndef(\test).filter(4, {|in| in+SinOsc.ar([200, 202])})
+Ndef(\test).filter(5, {|in| XFade2.ar(in, in.round(0.1), LFTri.ar(222))})
+Ndef(\test).filter(6, {|in| in+AllpassC.ar(in, 0.5, LFTri.ar([0.1, 0.11], 0, 0.1, 0.3))})
+
+Ndef(\test).stop(20)
