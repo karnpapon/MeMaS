@@ -1,6 +1,6 @@
-## age0
+## memas
 
-age0, (age-zero) is a set of tools for meta-geo live-performance utilising computer vision with corpus-based concatinative synthesis
+memas, (MEta-MAnifold Sound eXploration) is a set of tools for live-performance utilising computer vision with corpus-based concatinative synthesis
 
 - `/sound_map`: a SuperCollider tool for mapping ball movement to sound corpus.
 - `/python_ball_tracking`: a Python tool for tracking ping-pong ball by `OpenCV`
