@@ -1,6 +1,6 @@
 ## memas 
 
-memas, (/'mɛm-məs/) (MEta-MAnifold Sound exploration) is a set of tools for live-performance utilising computer vision with corpus-based concatinative synthesis
+memas, (/'mɛm-məs/) (MEta-MAnifold Sound exploration), a set of tools for exploring a connection between image and sound, utilising computer vision with corpus-based concatinative synthesis
 
 - `/sound_map`: a SuperCollider tool for mapping ball movement to sound corpus.
 - `/python_ball_tracking`: a Python tool for tracking ping-pong ball by `OpenCV`

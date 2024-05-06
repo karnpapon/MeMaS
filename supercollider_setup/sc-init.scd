@@ -2,8 +2,8 @@
 (
 MIDIClient.init;
 // s.options.outDevice = "Scarlett 2i4 USB";
-// s.options.outDevice ="MacBook Pro Speakers";
-s.options.outDevice ="BlackHole 16ch";
+s.options.outDevice ="MacBook Pro Speakers";
+// s.options.outDevice ="BlackHole 16ch";
 s.options.numInputBusChannels = 0;
 s.options.numOutputBusChannels = 16;
 s.boot;
@@ -267,8 +267,11 @@ OSCdef(\osc_corpus, {|msg, time, addr, recvPort|
 )
 
 // inject out_target to MyLivePerformance lib.
-~sampler_engine.out_target_(~src2MixerChannel);
+~sampler_engine.external_mixer_(~srcMixerChannel);
 
+{SinOsc.ar(440, 0, 0.2)}.play(~srcMixerChannel.asTarget)
+
+x=Synth(\default, target: ~src2MixerChannel.asTarget)
 
 ~sampler_engine.outbus_(0);
 
@@ -278,4 +281,12 @@ OSCdef(\osc_corpus, {|msg, time, addr, recvPort|
 )
 
 
+(
+~srcMixerChannel.play(
+	// Ndef(\basic, {SinOsc.ar(440, 0, 0.2)}).play;
+	{SinOsc.ar(440, 0, 0.2)}
+);
+)
+
+{SinOsc.ar(440, 0, 0.2)}.play(~srcMixerChannel.asTarget, ~srcMixerChannel.asBus)
 

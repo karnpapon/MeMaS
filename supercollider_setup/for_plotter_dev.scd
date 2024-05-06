@@ -1,5 +1,6 @@
 (
-s.options.outDevice ="BlackHole 16ch";
+// s.options.outDevice ="BlackHole 16ch"; // in case using Reaper
+s.options.outDevice ="MacBook Pro Speakers";
 s.options.numInputBusChannels = 0;
 s.options.numOutputBusChannels = 16;
 s.waitForBoot {
@@ -17,7 +18,8 @@ s.waitForBoot {
 
 ~sampler_engine.loadPreProcessedData("/Users/karnpaponboonput/Desktop/test-pref-data");
 
-~sampler_engine.outbus_(0);
+~sampler_engine.external_mixer_(~srcMixerChannel);
+~sampler_engine.outbus_(2);
 
 // inject GUI and then start engine.
 (

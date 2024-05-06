@@ -308,14 +308,6 @@ MyPlotter : FluidViewer {
 						var x2=pen_tool_nearest.asPoint.x;
 						var y2=pen_tool_nearest.asPoint.y;
 
-						// var vw = viewport.bounds.width;
-						// var vh = viewport.bounds.height;
-
-						// var	x2_dyn = x2.linlin(zoomxmin*vw,zoomxmax*vw,0,vw,nil) - (pointSize/2);
-						// var y2_dyn = y2.linlin(zoomymax,zoomymin,0,vh,nil) - (pointSize/2);
-
-						// (zoomymax: zoomymax, zoomymin: zoomymin, zoomDragStart: zoomDragStart).postln;
-
 						this.drawGradientLine(
 							x1@y1,
 							x2@y2,
@@ -397,10 +389,6 @@ MyPlotter : FluidViewer {
 		drawDataPoints {
 			arg viewport, zoomRect;
 			var w = viewport.bounds.width, h = viewport.bounds.height, nearestLineWidth=4;
-			/*	var x1 = pen_tool_osc.asPoint.x;
-			var y1 = pen_tool_osc.asPoint.y;
-			var x2 = pen_tool_nearest.asPoint.x;
-			var y2 = pen_tool_nearest.asPoint.y;*/
 
 			if(dict_internal.notNil,{
 				dict_internal.keysValuesDo({
@@ -431,14 +419,6 @@ MyPlotter : FluidViewer {
 					Pen.strokeColor_(Color.black);
 					Pen.addRect(zoomRect);
 					Pen.draw(2);
-
-					/*this.drawGradientLine(
-					x1@y1,
-					x2@y2,
-					"asPenToolMouse_",
-					"asPenToolNearest_",
-					nearestLineWidth,
-					);*/
 				});
 			});
 		}

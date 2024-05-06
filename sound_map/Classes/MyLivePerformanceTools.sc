@@ -7,14 +7,9 @@
 
 MyLivePerformanceTool {
 	classvar <>server;
-	var <>out_target, <>outbus;
+	var <>external_mixer, <>outbus;
 	var src, analyses, indices, umapped, normed, tree, point, controllers;
-	var previous, play_slice, point, pen_tool_osc, previous, colorTask;
-	// var red=0, green=0.33, blue=0.67;
-	/*var redChange = 0.01;
-	var greenChange = 0.015;
-	var blueChange = 0.02;*/
-	/*	var point_color="#ff500d", bg_color="#F1F1F1", current_point_color="#000000", neighbor_color="#1865FE";*/
+	var previous, play_slice, point, pen_tool_osc, previous, colorTask, synthDef;
 
 	*new {
 		arg folder_path;
@@ -75,7 +70,7 @@ MyLivePerformanceTool {
 		FluidBufOnsetSlice.processBlocking(
 			server,
 			src,
-			metric:metric, // FluCoMa algorithm.
+			metric:metric, // RComplexDev.
 			threshold:threshold, // how to determine onset point.
 			indices:indices,
 			action:{
@@ -87,6 +82,9 @@ MyLivePerformanceTool {
 
 	analyze {
 		arg numCoeffs = 13, startCoeff = 1;
+		// var trainingLabels = FluidLabelSet(server);
+		// var labels = ["synth","bells"];
+		// var counter=0;
 
 		analyses = FluidDataSet(server);
 		indices.loadToFloatArray(action:{
@@ -98,8 +96,9 @@ MyLivePerformanceTool {
 			fa.doAdjacentPairs{
 				arg start, end, i;
 				var num = end - start;
+				var id = "mfcc-analysis-%".format(i);
 
-				// MFCC will analyze by using timbre infomation.
+				// MFCC will analyze by using timbre information.
 				// notice `startCoeff` start from 1, since 0 = average volume (we wanted only timbre factors).
 				// readmore: https://learn.flucoma.org/reference/mfcc/#mfcc-0
 				FluidBufMFCC.processBlocking(server,src,start,num,features:mfccs,numCoeffs:numCoeffs,startCoeff:startCoeff);
@@ -125,6 +124,19 @@ MyLivePerformanceTool {
 
 			analyses.print;
 			"analyze::done".postln;
+
+			/*mfccs.numFrames.do{
+			arg frame, i;
+			var id = "mfcc-analysis-%".format(counter.asInteger);
+			// FluidBufFlatten.processBlocking(server,mfccs,frame,1, destination: flat);
+			// ~ds.addPoint(id,flat);
+			// i.postln;
+			trainingLabels.addLabel(id,labels[i]);
+			counter = counter + 1;
+			};
+
+			"trainingLabels::done".postln;
+			trainingLabels.print;*/
 		});
 	}
 
@@ -167,8 +179,8 @@ MyLivePerformanceTool {
 
 			env = EnvGen.kr(Env([0,1,1,0],[0.03,dursecs-0.06,0.03]),doneAction:2);
 			sig = sig.dup * env;
-			ReplaceOut.ar(outbus ?? 0, sig);
-		}.play(out_target ?? nil) // play in target group otherwise play to default group.
+			// ReplaceOut.ar(outbus ?? 0, sig);
+		}.play(target:external_mixer.asTarget ?? nil, outbus: external_mixer.asBus ?? nil) // play in target group otherwise play to default group.
 	}
 
 
@@ -339,6 +351,8 @@ MyLivePerformanceTool {
 
 							});
 						}, address ?? '/test_plotter/1');
+
+						this.toggleOSC(false);
 					},
 
 					mouseMoveAction:{
@@ -413,6 +427,19 @@ MyLivePerformanceTool {
 		"listen osc on address %".format(address ?? '/test_plotter/1').postln;
 	}
 
+	toggleOSC{
+		arg osc_enabled;
+
+		if(osc_enabled, {
+			"osc_enabled".postln;
+			OSCdef(\test_plotter_trigger).enable;
+		},{
+			"osc_disabled".postln;
+			OSCdef(\test_plotter_trigger).disable;
+		})
+		;
+	}
+
 	stopListen {
 		arg osc_def_name;
 		"stop listening osc: %, port: %, address: %".format(osc_def_name, 57120, '/test_plotter/1').postln;
@@ -461,6 +488,7 @@ MyLivePerformanceTool {
 				var radius = 0.01, numNeighbours=1;
 				normed = FluidDataSet(server).read(file.fullPath);
 				tree = FluidKDTree(server,numNeighbours: numNeighbours, radius: radius).fit(normed);
+				// trainingLabels = FluidLabelSet(server);
 			};
 
 			"loadPreProcessedData::done".postln;
@@ -468,7 +496,9 @@ MyLivePerformanceTool {
 			var radius = 0.01, numNeighbours=1;
 			"map_kd_tree: %".format(this.map_kd_tree).postln;
 			};*/
-		}
+		};
+
+		// trainingLabels.print;
 	}
 
 }
