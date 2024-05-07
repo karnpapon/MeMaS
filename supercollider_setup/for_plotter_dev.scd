@@ -4,7 +4,7 @@ s.options.outDevice ="MacBook Pro Speakers";
 s.options.numInputBusChannels = 0;
 s.options.numOutputBusChannels = 16;
 s.waitForBoot {
-	~sampler_engine = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
+	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
 }
 )
 

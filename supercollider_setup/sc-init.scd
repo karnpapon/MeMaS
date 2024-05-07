@@ -11,9 +11,9 @@ s.boot;
 s.waitForBoot{
 	n = NanoKontrol();  // https://github.com/karnpapon/NanoKontrol
 	s.plotTree;
-	~sampler_engine = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds/");
+	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds/");
 
-	~sampler_engine = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
+	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
 
 }
 )

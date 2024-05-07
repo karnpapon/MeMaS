@@ -1,11 +1,11 @@
 // =========================================================
-// Title         : MyLivePerformanceTool
-// Description   : personal live performance tool.
+// Title         : MeMaS
+// Description   :
 // Version       : 1.0
 // =========================================================
 
 
-MyLivePerformanceTool {
+MeMaSEngine {
 	classvar <>server;
 	var <>external_mixer, <>outbus;
 	var src, analyses, indices, umapped, normed, tree, point, controllers;

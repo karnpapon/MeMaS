@@ -1,11 +1,11 @@
 // ===================================================================
-// Title         : MyLivePerformanceDrawingTool
-// Description   : drawing class for MyLivePerformanceTool.
+// Title         : MeMaSDrawingTool
+// Description   : drawing class for MeMaS.
 // Version       : 1.0
 // Notes         : graphical stuff is not optimized in SuperCollider.
 // ====================================================================
 
-MyPlotterPoint {
+MeMaSPlotterPoint {
 	var id, <x, <y, <>color, <>size = 1;
 
 	*new {
@@ -14,7 +14,7 @@ MyPlotterPoint {
 	}
 }
 
-MyPlotter : FluidViewer {
+MeMaSPlotter : FluidViewer {
 	var <parent, <xmin, <xmax, <ymin, <ymax, standalone,
 	<zoomxmin, <zoomxmax, <zoomymin, <zoomymax,
 	<userView, <pointSize = 6, pointSizeScale = 1, dict_internal,
@@ -67,7 +67,7 @@ MyPlotter : FluidViewer {
 				category_int = label_to_int.at(category_string);
 
 				if(category_int > (categoryColors.size-1),{
-					"MyPlotter:setCategories_ MyPlotter doesn't have that many category colors. You can use the method 'setColor_' to set colors for individual points.".warn
+					"MeMaSPlotter:setCategories_ MeMaSPlotter doesn't have that many category colors. You can use the method 'setColor_' to set colors for individual points.".warn
 				});
 
 				color = categoryColors[category_int];
@@ -75,7 +75,7 @@ MyPlotter : FluidViewer {
 			});
 			this.refresh;
 		},{
-			"MyPlotter::setCategories_ MyPlotter cannot receive method \"categories_\". It has no data. First set a dictionary.".warn;
+			"MeMaSPlotter::setCategories_ MeMaSPlotter cannot receive method \"categories_\". It has no data. First set a dictionary.".warn;
 		});
 	}
 
@@ -86,7 +86,7 @@ MyPlotter : FluidViewer {
 			dict_internal.at(identifier).size_(size);
 			this.refresh;
 		},{
-			"MyPlotter::pointSize_ identifier not found".warn;
+			"MeMaSPlotter::pointSize_ identifier not found".warn;
 		});
 	}
 
@@ -94,7 +94,7 @@ MyPlotter : FluidViewer {
 		arg identifier, x, y, color, size = 1;
 		identifier = identifier.asSymbol;
 		if(dict_internal.at(identifier).notNil,{
-			"MyPlotter::addPoint_ There already exists a point with identifier %. Point not added. Use setPoint_ to overwrite existing points.".format(identifier).warn;
+			"MeMaSPlotter::addPoint_ There already exists a point with identifier %. Point not added. Use setPoint_ to overwrite existing points.".format(identifier).warn;
 		},{
 			this.setPoint_(identifier,x,y,color,size);
 		});
@@ -113,7 +113,7 @@ MyPlotter : FluidViewer {
 
 		identifier = identifier.asSymbol;
 
-		dict_internal.put(identifier,MyPlotterPoint(identifier,x,y,color ? Color.black,size));
+		dict_internal.put(identifier,MeMaSPlotterPoint(identifier,x,y,color ? Color.black,size));
 
 		this.refresh;
 	}
@@ -125,7 +125,7 @@ MyPlotter : FluidViewer {
 			dict_internal.at(identifier).color_(color);
 			this.refresh;
 		},{
-			"MyPlotter::setColor_ identifier not found".warn;
+			"MeMaSPlotter::setColor_ identifier not found".warn;
 		});
 	}
 
@@ -163,7 +163,7 @@ MyPlotter : FluidViewer {
 		dict_internal = Dictionary.new;
 		dict.at("data").keysValuesDo({
 			arg k, v;
-			dict_internal.put(k.asSymbol,MyPlotterPoint(k,v[0],v[1],Color.black,1));
+			dict_internal.put(k.asSymbol,MeMaSPlotterPoint(k,v[0],v[1],Color.black,1));
 		});
 		if(userView.notNil,{
 			this.refresh;
@@ -208,7 +208,7 @@ MyPlotter : FluidViewer {
 	}
 
 	dictNotProperlyFormatted {
-		"MyPlotter: The dictionary passed in is not properly formatted.".error;
+		"MeMaSPlotter: The dictionary passed in is not properly formatted.".error;
 	}
 
 	createPlotWindow {
@@ -219,7 +219,7 @@ MyPlotter : FluidViewer {
 		bounds = bounds ? Rect(0,0,800,800);
 		if (parent.isNil) {
 			if (standalone) {
-				parent = Window("MyPlotter", bounds);
+				parent = Window("MeMaSPlotter", bounds);
 				userView = UserView();
 				defer {
 					parent.view.layout = HLayout(userView).margins_(0).spacing_(0);

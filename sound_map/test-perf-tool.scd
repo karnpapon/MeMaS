@@ -4,9 +4,9 @@
 // especially with `.analyze` and `.map_dataset` function.
 // the recommended way is do this once and then `exportProcessedData`
 // so we can read pre-computed information later. see [1] for an example.
-p = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
-// a = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/samples/soundpharm/test/");
-// a = MyLivePerformanceTool(FluidFilesPath());
+p = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
+// a = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/test/");
+// a = MeMaSEngine(FluidFilesPath());
 
 p.analyze;
 p.map_dataset;
@@ -32,7 +32,7 @@ a.exportProcessedData("/Users/karnpaponboonput/Desktop/live-perf-data/", "my-liv
 // [1]
 // for loading preProcessed data (slicing/analysing/map_data_set/normalize/map_kdtree).
 // dont forget to `exportProcessedData` first.
-p = MyLivePerformanceTool("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
+p = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
 p.loadPreProcessedData("/Users/karnpaponboonput/Desktop/live-perf-data");
 
 p.plot
