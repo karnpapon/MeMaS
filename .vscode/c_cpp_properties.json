@@ -13,7 +13,7 @@
             ],
             "intelliSenseMode": "gcc-x64",
             "includePath": [
-                "/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/esp32_setup",
+                "/Users/karnpaponboonput/Desktop/codes/MeMaS/esp32_setup",
                 "/Users/karnpaponboonput/Documents/Arduino/hardware/espressif/esp32/tools/esp32-arduino-libs/esp32/qio_qspi/include",
                 "/Users/karnpaponboonput/Documents/Arduino/hardware/espressif/esp32/cores/esp32",
                 "/Users/karnpaponboonput/Documents/Arduino/hardware/espressif/esp32/variants/esp32",

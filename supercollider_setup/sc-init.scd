@@ -121,9 +121,11 @@ SynthDef(\metro, {
 ~delayMixerChannel.free;
 )
 
+~lpf.free
+
 // [6]: setup fx chains;
 (
-~shaper = ~srcMixerChannel.playfx({ |outbus,in, shape = 0.5, amp = 1.0,  amp_compensation_amount = 0.99, lo = 1, hi = 0.5, offset = 0, lo_thresh = 0.5, hi_thresh = 0.5|
+~shaper = ~srcMixerChannel.playfx({ |outbus,in, shape = 0.5, amp = 1.0,  amp_compensation_amount = 0.99, lo = 1, hi = 0.5, offset = 0.5, lo_thresh = 0.5, hi_thresh = 0.5|
 	var abs, diff, numChannels = 2;
 	var sig = In.ar(outbus, numChannels);
 	shape = min(shape, 1.0 - 4e-10).explin(0.001, 1, 0.0, 0.999999);
@@ -143,7 +145,7 @@ SynthDef(\metro, {
 	Limiter.ar(LeakDC.ar(sig * (amp+diff)));
 });
 
-~dist = ~srcMixerChannel.playfx({ |outbus, dst = 0|
+~dist = ~srcMixerChannel.playfx({ |outbus, dst = 0.5|
 	var sig, mod;
 	sig = In.ar(outbus, 2);
 	mod = CrossoverDistortion.ar(sig, amp: 0.2, smooth: 0.01);
@@ -153,7 +155,7 @@ SynthDef(\metro, {
 });
 
 ~triode = ~srcMixerChannel.playfx({
-	|outbus,in, tri=1.0|
+	|outbus,in, tri=0.5|
 	var sig, sc;
 	sig = In.ar(outbus,2);
 	sc = tri * 10 + 0.001;
@@ -267,7 +269,7 @@ OSCdef(\osc_corpus, {|msg, time, addr, recvPort|
 )
 
 // inject out_target to MyLivePerformance lib.
-~sampler_engine.external_mixer_(~srcMixerChannel);
+~sampler_engine.external_mixer_(~src2MixerChannel);
 
 {SinOsc.ar(440, 0, 0.2)}.play(~srcMixerChannel.asTarget)
 
