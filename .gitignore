@@ -4,3 +4,4 @@
 **/resources
 build
 /mapping_sounds
+**/node_modules

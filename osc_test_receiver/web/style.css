@@ -1,0 +1,17 @@
+body {
+  background-color: #1b1a1a;
+  color: rgb(213, 212, 212);
+  text-align: center;
+  margin: auto;
+  padding: auto;
+}
+h1 {
+  text-align: center;
+  padding: 20px;
+}
+canvas {
+  min-width: 340px;
+  min-height: 340px;
+  max-width: 640px;
+  max-height: 640px;
+}
