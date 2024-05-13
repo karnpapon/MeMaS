@@ -2,16 +2,16 @@
 (
 MIDIClient.init;
 // s.options.outDevice = "Scarlett 2i4 USB";
-s.options.outDevice ="MacBook Pro Speakers";
+// s.options.outDevice ="MacBook Pro Speakers";
 // s.options.outDevice ="BlackHole 16ch";
 s.options.numInputBusChannels = 0;
 s.options.numOutputBusChannels = 16;
 s.boot;
 
 s.waitForBoot{
-	n = NanoKontrol();  // https://github.com/karnpapon/NanoKontrol
+	// n = NanoKontrol();  // https://github.com/karnpapon/NanoKontrol
 	s.plotTree;
-	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds/");
+	// ~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds/");
 
 	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
 
@@ -35,35 +35,37 @@ s.waitForBoot{
 ~sampler_engine.loadPreProcessedData("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds_data");
 )
 
+// test data
+~sampler_engine.loadPreProcessedData("/Users/karnpaponboonput/Desktop/test-pref-data");
 
 
 // [3]: setup faders/sliders
 // should add it to ServerTree ?
 // so it can survive after `Cmd+Period`
-(
+/*(
 if(c.notNil){
-	(c.faders.size).do{|fader,i| c.faders[i].free};
-	(c.knobs.size).do{|knob,i| c.knobs[i].free};
+(c.faders.size).do{|fader,i| c.faders[i].free};
+(c.knobs.size).do{|knob,i| c.knobs[i].free};
 };
 
 n.faders.do{|fader, i |
-	fader.onChange = {|fadervalue|
-		fadervalue.postln;
-		c.faders.at(i).set(fadervalue/127);
-	}
+fader.onChange = {|fadervalue|
+fadervalue.postln;
+c.faders.at(i).set(fadervalue/127);
+}
 };
 
 n.knobs.do{|knob, i |
-	knob.onChange = {|knobvalue|
-		knobvalue.postln;
-		c.knobs.at(i).set(knobvalue/127);
-	}
+knob.onChange = {|knobvalue|
+knobvalue.postln;
+c.knobs.at(i).set(knobvalue/127);
+}
 };
 
 c = ();  // controlBusses
 c.faders = Array.fill(9,{Bus.control(s,1).set(0.0)});
 c.knobs = Array.fill(9, {Bus.control(s,1).set(0.25)});
-)
+)*/
 
 
 // [4]: setup SynthDef
@@ -90,6 +92,7 @@ SynthDef(\metro, {
 (
 ~srcMixerChannel = MixerChannel(\channel_1, s, 2, 2, 1);
 ~src2MixerChannel = MixerChannel(\channel_2, s, 2, 2, 1);
+~src3MixerChannel = MixerChannel(\channel_3, s, 2, 2, 1);
 ~reverbMixerChannel = MixerChannel(\channel_fx_rvb, s, 2, 2, level: 1,
 	completionFunc: { |chan|
 		~rvb = chan.playfx { |outbus|
@@ -114,18 +117,16 @@ SynthDef(\metro, {
 ~delayMixerChannel.fadergroup.moveToTail(s.defaultGroup);
 )
 
-(
+/*(
 ~srcMixerChannel.free;
 ~src2MixerChannel.free;
 ~reverbMixerChannel.free;
 ~delayMixerChannel.free;
-)
-
-~lpf.free
+)*/
 
 // [6]: setup fx chains;
 (
-~shaper = ~srcMixerChannel.playfx({ |outbus,in, shape = 0.5, amp = 1.0,  amp_compensation_amount = 0.99, lo = 1, hi = 0.5, offset = 0.5, lo_thresh = 0.5, hi_thresh = 0.5|
+~shaper = ~srcMixerChannel.playfx({ |outbus,in, shape = 0, amp = 1.0,  amp_compensation_amount = 0.99, lo = 0, hi = 0.5, offset = 0, lo_thresh = 0, hi_thresh = 0|
 	var abs, diff, numChannels = 2;
 	var sig = In.ar(outbus, numChannels);
 	shape = min(shape, 1.0 - 4e-10).explin(0.001, 1, 0.0, 0.999999);
@@ -145,7 +146,7 @@ SynthDef(\metro, {
 	Limiter.ar(LeakDC.ar(sig * (amp+diff)));
 });
 
-~dist = ~srcMixerChannel.playfx({ |outbus, dst = 0.5|
+~dist = ~srcMixerChannel.playfx({ |outbus, dst = 0|
 	var sig, mod;
 	sig = In.ar(outbus, 2);
 	mod = CrossoverDistortion.ar(sig, amp: 0.2, smooth: 0.01);
@@ -155,7 +156,7 @@ SynthDef(\metro, {
 });
 
 ~triode = ~srcMixerChannel.playfx({
-	|outbus,in, tri=0.5|
+	|outbus,in, tri=0|
 	var sig, sc;
 	sig = In.ar(outbus,2);
 	sc = tri * 10 + 0.001;
@@ -164,7 +165,7 @@ SynthDef(\metro, {
 });
 
 ~lpf = ~srcMixerChannel.playfx({
-	|outbus,in, cutoff = 0.5, resonance = 0|
+	|outbus,in, cutoff = 1, resonance = 0|
 	var numChannels = 2;
 	var sig = In.ar(outbus, numChannels);
 	var cutoffClipped = cutoff.linexp(0.0, 1.0, 40, 20000);
@@ -172,18 +173,9 @@ SynthDef(\metro, {
 });
 )
 
-// [7]: send to reverb
-// this will create new instance and push to nodeTree every evaluation.
-// so, better run once (or don't forget to cleanup first).
-~postsend = ~srcMixerChannel.newPostSend(~reverbMixerChannel, 0.9);
-~postsend.free
-
-// ~postsend2 = ~src2MixerChannel.newPostSend(~reverbMixerChannel, 0.9);
-~postsend2 = ~src2MixerChannel.newPostSend(~delayMixerChannel, 0.9);
-
 
 // [8]: map Korg NanoKontrol (faders/slides)
-(
+/*(
 ~srcMixerChannel.synth.set(\level, c.faders.at(0).asMap); // fader[0] -> src level [\demo_kick]
 ~src2MixerChannel.synth.set(\level, c.faders.at(1).asMap); // fader[1] -> src2 level [\demo_corpus]
 ~lpf.set(\cutoff, c.knobs.at(8).asMap); // knob[8] -> cutoff level
@@ -197,98 +189,104 @@ SynthDef(\metro, {
 ~shaper.set(\hi, c.knobs.at(6).asMap); // knob[6] -> shaper::hi level
 ~shaper.set(\lo_thresh, c.knobs.at(7).asMap); // knob[7] -> shaper::lo_thresh level
 // ~shaper.set(\hi_thresh, c.knobs.at(8).asMap); // knob[8] -> shaper::hi_thresh level
-)
-s.meter
-s.plotTree
-// for testing
+)*/
+
+// ----------------Mixer----------------
+~board = MixingBoard("mixer", nil,~srcMixerChannel, ~src2MixerChannel, ~src3MixerChannel, ~reverbMixerChannel, ~delayMixerChannel );
+
+
+// ---------------MeMasEngine-----------
+// inject GUI and then start engine.
 (
-~srcMixerChannel.play(
-	(
-		Pbind(*[
-			instrument: \drm,
-			dur: 1 / Pwrand([5, 10], [3, 8].normalizeSum, 64*4),
-			tun: Pdup(Pexprand(1, 8), Pexprand(0.0001, 0.25)),
-			fed: Pexprand(0.00001, 2000.0),
-			amp: Pdup(Pexprand(1, 5), Pexprand(0.75, 2.0)),
-			rel: Pexprand(Pkey(\dur) / (4/3), Pkey(\dur) * 64),
-			pan: Pdup(Pexprand(1, 7), Pseq([0.5, 0.75, 1.0, 0.75, 0.5, 0.25, 0.0, 0.25], inf)),
-			legato: Pwrand([Pkey(\dur) * 1.5, Pkey(\dur) * 16], [1, 2].normalizeSum, inf),
-			sustain: Pdup(Pexprand(1, 3), Pexprand(0.1, 2.0)),
-		])
-	);
-)
-)
+var kNearest, kNearestDist;
+var buttonValue="OSC";
 
-~cld.set(\freeze, 0)
-~cld.set(\freeze, 1)
-(~src2MixerChannel.play({ |indices, index, src|
-	{
-		var startsamp = Index.kr(indices,index);
-		var stopsamp =  Index.kr(indices,index+1);
-		var phs = Phasor.ar(0,BufRateScale.ir(src),startsamp,stopsamp);
-		var sig = BufRd.ar(1,src,phs);
-		var dursecs = (stopsamp - startsamp) / BufSampleRate.ir(src);
-		var env;
-		dursecs = min(dursecs,1);
-		env = EnvGen.kr(Env([0,1,1,0],[0.03,dursecs-0.06,0.03]),doneAction:2);
-		sig = sig.dup * env;
-	}
-}, args: [
-	\src, ~sampler_engine.get_src,
-	\indices, ~sampler_engine.get_indices,
-	\index, ~sampler_engine.get_indices.numFrames.rand
-])
-)
-
-// show mixer GUI
-~board = MixingBoard("demo", nil,~srcMixerChannel, ~src2MixerChannel, ~reverbMixerChannel, ~delayMixerChannel );
-
-
-// [9]: init osc definitions.
-(
-OSCdef(\osc_corpus, {|msg, time, addr, recvPort|
-	(~src2MixerChannel.play({ |indices, index, src|
-		{
-			var startsamp = Index.kr(indices,index);
-			var stopsamp =  Index.kr(indices,index+1);
-			var phs = Phasor.ar(0,BufRateScale.ir(src),startsamp,stopsamp);
-			var sig = BufRd.ar(1,src,phs);
-			var dursecs = (stopsamp - startsamp) / BufSampleRate.ir(src);
-			var env;
-			dursecs = min(dursecs,1);
-			env = EnvGen.kr(Env([0,1,1,0],[0.03,dursecs-0.06,0.03]),doneAction:2);
-			sig = sig.dup * env;
-		}
-	}, args: [
-		\src, ~sampler_engine.get_src,
-		\indices, ~sampler_engine.get_indices,
-		\index, ~sampler_engine.get_indices.numFrames.rand
-	])
-	)
-},'/corpus');
-)
+w = Window("test",Rect(0,0,600,480+(20*2) ), resizable: false, border: false).front;
+w.view.decorator = FlowLayout(w.view.bounds);
+~sampler_engine.controller(parent: w);
 
 // inject out_target to MyLivePerformance lib.
 ~sampler_engine.external_mixer_(~src2MixerChannel);
 
-{SinOsc.ar(440, 0, 0.2)}.play(~srcMixerChannel.asTarget)
+t = ToggleButton(w,buttonValue,{
+	arg button,bool;
+	~sampler_engine.toggleOSC(true);
+},{
+	arg button,bool;
+	~sampler_engine.toggleOSC(false);
+},false,100,20, Color.green, Color.white);
 
-x=Synth(\default, target: ~src2MixerChannel.asTarget)
-
-~sampler_engine.outbus_(0);
-
-(
-~sampler_engine.listen;
-~sampler_engine.controller;
+StaticText(w,Rect(0,0,40,20)).string_("neighbours:");
+kNearest = TextView(w, Rect(0,0,40,20)).string_("").editable_(false);
+StaticText(w,Rect(0,0,70,20)).string_("distances:");
+kNearestDist = TextView(w, w.view.decorator.indentedRemaining.width@20).string_("").editable_(false);
+~sampler_engine.listen(parent: w, kNearest: kNearest, kNearestDist: kNearestDist);
 )
 
 
+// ----------------MPU6050---------------
 (
-~srcMixerChannel.play(
-	// Ndef(\basic, {SinOsc.ar(440, 0, 0.2)}).play;
-	{SinOsc.ar(440, 0, 0.2)}
+var knobX, knobY, knobZ, knobLpf, knobReso;
+w=Window("MPU6050", Rect(0, 600, 400, 120), border: true).front;
+w.view.decorator = FlowLayout( w.view.bounds, 10@10, 20@5 );
+
+knobX=EZKnob(w,60@90," GYRO_X ",ControlSpec(0, 127, \lin, 1, 0), {|ez|
+	// var knobVal = (ez.value).linlin(0,127,0,1);
+	// ~dist.set(\dst, knobVal);
+	// var knobVal = (ez.value).linlin(0,127,3,200)*0.8;
+	// Ndef(\nanite).set(\nf, knobVal)
+});
+knobY=EZKnob(w,60@90," GYRO_Y ",ControlSpec(0, 127, \lin, 1, 0), {|ez|
+	// var knobVal = (ez.value).linlin(0,127,0,1);
+	// ~triode.set(\tri, knobVal);
+});
+knobZ=EZKnob(w,60@90," GYRO_Z ",ControlSpec(0, 127, \lin, 1, 0), {|ez|
+	// var knobVal = (ez.value).linlin(0,127,0,1);
+	// ~shaper.set(\lo, knobVal);
+});
+
+knobLpf=EZKnob(w,60@90," CUTOFF ",ControlSpec(0, 1, \lin, 0.01, 1), {|ez|
+	~lpf.set(\cutoff, ez.value);
+});
+
+knobReso=EZKnob(w,60@90," RESON ",ControlSpec(0, 1, \lin, 0.01, 0), {|ez|
+	~lpf.set(\resonance, ez.value);
+});
+
+OSCdef(\coordChanged, {
+	arg msg;
+	// msg[1].postln;
+	defer {
+		knobX.value_(if(msg[1] == 0, 0, (msg[1])*2)).doAction;
+		knobY.value_(if(msg[2].neg == 0, 0, (127-(msg[2].neg))*2.5)).doAction;
+		knobZ.value_(if(msg[3].neg == 0, 0, (127-(msg[3].neg))*2.5)).doAction;
+	};
+
+	// kick with pre-defined Pattern!
+	if(msg[1] != 0 && ((msg[1] % 40)==0), {
+		Synth(\drm, [
+			\dur, 1 / Pwrand([5, 10], [3, 8].normalizeSum, 1).asStream.value * 2,
+			\tun, Pdup(Pexprand(1, 8), Pexprand(0.0001, 0.25)).asStream.value,
+			\fed, Pexprand(0.00001, 2000.0).asStream.value,
+			\amp, Pdup(Pexprand(1, 5), Pexprand(0.75, 2.0)).asStream.value,
+			\rel, Pexprand(Pkey(\dur) / (4/3), Pkey(\dur) * 64).asStream.value.poll,
+			\pan, Pdup(Pexprand(1, 7), Pseq([0.5, 0.75, 1.0, 0.75, 0.5, 0.25, 0.0, 0.25], 1)).asStream.value,
+			\legato, Pwrand([Pkey(\dur) * 1.5, Pkey(\dur) * 16], [1, 2].normalizeSum, 1).asStream.value,
+			\sustain, Pdup(Pexprand(1, 3), Pexprand(0.1, 2.0)).asStream.value * 2,
+			\out, ~srcMixerChannel.asBus
+		] ,target: ~srcMixerChannel.asTarget);
+	});
+}, '/gyro_read');
+
+
+OSCdef(\resetButton, {
+	arg msg;
+	defer {
+		knobX.value_(0).doAction;
+		knobY.value_(0).doAction;
+		knobZ.value_(0).doAction;
+		knobLpf.value_(0.5).doAction;
+		knobReso.value_(0.5).doAction;
+	};
+}, '/button_reset')
 );
-)
-
-{SinOsc.ar(440, 0, 0.2)}.play(~srcMixerChannel.asTarget, ~srcMixerChannel.asBus)
-

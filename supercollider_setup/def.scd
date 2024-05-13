@@ -1,15 +1,20 @@
+// + 00
 (
 Ndef(\nanite, {|nf=3, sf=0.0007, hpf=20000|
 	HPF.ar(OFNanite.ar(nf, surface:sf, freqShift:50.neg),
-		EnvGen.ar(Env([19900,100,300,8000,18000],[0.2,22,14,22], 'sine'))
-) * 2 }).play;
+		// EnvGen.ar(Env([19900,100,300,8000,18000],[0.2,22,14,22], 'sine'))
+) * 2 });
 )
 
+Ndef(\nanite).group_(~src3MixerChannel.synthgroup)
+Ndef(\nanite).setBus(~src3MixerChannel.asBus)
+Ndef(\nanite).gui;
 
 d = OFDinocap.ar(freq: 90).play
 
 Ndef(\sin, {|freq= 500| Splay.ar(SinOsc.ar(freq, 0, 0.4))})
 Ndef(\sin)[1] = \xset -> Pbind(\freq, (Pseq([0, 5, 2], inf)+60).midicps)
+Ndef(\sin).play
 
 // + 0
 Ndef(\brus, {WhiteNoise.ar(0.5)})
@@ -19,11 +24,9 @@ Ndef(\filter).fadeTime= 5
 Ndef(\filter, {LPF.ar(Ndef.ar(\brus), 300)})
 Ndef(\fm).stop
 
-Routine {
-
-}
-
+Ndef(\bromate).gui
 (
+// safe range: [freq: 70-2000]
 Ndef(\bromate, {
 	arg freq=100, modFreq=2.1, mul=1.0, add=0.0;
 	var saw = LeastChange.ar(GbmanL.ar(freq, freq * 1.3).clip(LFNoise2.ar([modFreq, modFreq*1.1])), GbmanL.ar(freq*1.3));
@@ -44,7 +47,7 @@ Ndef(\silk, {
 
 Ndef(\depfm).gui
 
-Ndef(\silk).free
+Ndef(\demwi).gui
 
 
 (
@@ -103,6 +106,7 @@ Ndef(\depfm).fadeTime_(1.5)
 Ndef(\depfm).xset(\modFreq, 2500, \freqMax, 10, \freqMin, 3)
 Ndef(\depfm).gui
 
+// + 6
 (
 Ndef(\bloded, { |freq=90, modFreq=11, harms=150|
 	var son = Splay.ar ( HPF.ar(Blip.ar( Array.series(4, freq, 5), harms).fold2(
@@ -115,7 +119,7 @@ Ndef(\bloded, { |freq=90, modFreq=11, harms=150|
 
 Ndef(\bloded).fadeTime_(1.5)
 Ndef(\bloded).xset(\freq, 120, \modFreq, 20)
-Ndef(\bloded).clear
+Ndef(\bloded).gui
 
 // + 3
 (
@@ -155,7 +159,6 @@ Ndef(\opca, { |sdm=1, size = 5, from=1, to=25,modFreq=10,modFrom=2,modTo=255, am
  var trig, waveform;
  var sd = SampleDur.ir * sdm;
 var rand = Array.rand(size,from,to);
-	rand.postln;
  waveform = DemandEnvGen.ar(
 		Dseq([1, [-1,0.5]], inf),
 		Dseq(rand, inf) * sd

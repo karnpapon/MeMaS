@@ -8,21 +8,17 @@
 #include <Arduino_JSON.h>
 #include <OSCMessage.h>
 #include <MPU6050_light.h>
-// #include <MPU6050.h>
-// #include <SimpleKalmanFilter.h>
 
-// SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
+#define ADC_PIN 21
+#define BUTTON_PIN 19
+#define SWITCH_PIN 5
 
 // Serial output refresh time
 const long SERIAL_REFRESH_TIME = 30;
 long refresh_time;
 
-// float accPitch = 0;
-// float accRoll = 0;
-// float kalPitch = 0;
-// float kalRoll = 0;
-
-#define ADC_PIN 21
+int prev_button_state = LOW;  // The previous state from the input pin
+int button_state;  
 
 WiFiUDP Udp;
 
@@ -36,7 +32,7 @@ unsigned int outPort = 57120; // default SC port
 // AsyncWebServer server(80);
 
 // Json Variable to Hold Sensor Readings
-JSONVar readings;
+// JSONVar readings;
 
 // Timer variables
 unsigned long lastTime = 0;  
@@ -46,8 +42,6 @@ unsigned long gyroDelay = 60;
 // unsigned long lastTimeTemperature = 0;
 // unsigned long temperatureDelay = 1000;
 
-// slide switch at GPIO5 (D5)
-const int switchPin = 5;
 int switchState;
 
 // Create a sensor object
@@ -58,24 +52,24 @@ MPU6050 mpu(Wire);
 sensors_event_t a, g, temp;
 
 float gyroX, gyroY, gyroZ;
-float accX, accY, accZ;
-float temperature;
+// float accX, accY, accZ;
+// float temperature;
 
 //Gyroscope sensor deviation
-float gyroXerror = 0.07;
-float gyroYerror = 0.03;
-float gyroZerror = 0.01;
+// float gyroXerror = 0.07;
+// float gyroYerror = 0.03;
+// float gyroZerror = 0.01;
 
 int remappedAngleY = 0;
 int remappedAngleX = 0;
 int remappedAngleZ = 0;
 int limit_gyro_x = 90;
-int limit_gyro_y = 100;
-int limit_gyro_z = 90;
+int limit_gyro_y = -70;
+int limit_gyro_z = -70;
 
-struct gyro{
-  float gyroX, gyroY, gyroZ;
-};
+// struct gyro{
+//   float gyroX, gyroY, gyroZ;
+// };
 
 void initMPU(){
   byte status = mpu.begin();
@@ -90,78 +84,6 @@ void initMPU(){
   Serial.println("Done!\n");
 }
 
-// Init MPU6050
-// void initMPU(){
-
-//   if (!mpu.begin()) {
-//     Serial.println("Failed to find MPU6050 chip");
-//     while (1) {
-//       delay(10);
-//     }
-//   }
-//   Serial.println("MPU6050 Found!");
-
-//   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-
-//   Serial.print("Accelerometer range set to: ");
-//   switch (mpu.getAccelerometerRange()) {
-//   case MPU6050_RANGE_2_G:
-//     Serial.println("+-2G");
-//     break;
-//   case MPU6050_RANGE_4_G:
-//     Serial.println("+-4G");
-//     break;
-//   case MPU6050_RANGE_8_G:
-//     Serial.println("+-8G");
-//     break;
-//   case MPU6050_RANGE_16_G:
-//     Serial.println("+-16G");
-//     break;
-//   }
-//   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-//   Serial.print("Gyro range set to: ");
-//   switch (mpu.getGyroRange()) {
-//   case MPU6050_RANGE_250_DEG:
-//     Serial.println("+- 250 deg/s");
-//     break;
-//   case MPU6050_RANGE_500_DEG:
-//     Serial.println("+- 500 deg/s");
-//     break;
-//   case MPU6050_RANGE_1000_DEG:
-//     Serial.println("+- 1000 deg/s");
-//     break;
-//   case MPU6050_RANGE_2000_DEG:
-//     Serial.println("+- 2000 deg/s");
-//     break;
-//   }
-
-//   mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
-//   Serial.print("Filter bandwidth set to: ");
-//   switch (mpu.getFilterBandwidth()) {
-//   case MPU6050_BAND_260_HZ:
-//     Serial.println("260 Hz");
-//     break;
-//   case MPU6050_BAND_184_HZ:
-//     Serial.println("184 Hz");
-//     break;
-//   case MPU6050_BAND_94_HZ:
-//     Serial.println("94 Hz");
-//     break;
-//   case MPU6050_BAND_44_HZ:
-//     Serial.println("44 Hz");
-//     break;
-//   case MPU6050_BAND_21_HZ:
-//     Serial.println("21 Hz");
-//     break;
-//   case MPU6050_BAND_10_HZ:
-//     Serial.println("10 Hz");
-//     break;
-//   case MPU6050_BAND_5_HZ:
-//     Serial.println("5 Hz");
-//     break;
-//   }
-// }
-
 // Initialize WiFi
 void initWiFi() {
   WiFi.mode(WIFI_STA);
@@ -175,33 +97,6 @@ void initWiFi() {
   Serial.println("");
   Serial.println(WiFi.localIP());
 }
-
-// gyro getGyroReadings(){
-  // mpu.getEvent(&a, &g, &temp);
-
-  // float gyroX_temp = g.gyro.x;
-  // if(abs(gyroX_temp) > gyroXerror)  {
-  //   gyroX += gyroX_temp/50.00;
-  // }
-  
-  // float gyroY_temp = g.gyro.y;
-  // if(abs(gyroY_temp) > gyroYerror) {
-  //   gyroY += gyroY_temp/70.00;
-  // }
-
-  // float gyroZ_temp = g.gyro.z;
-  // if(abs(gyroZ_temp) > gyroZerror) {
-  //   gyroZ += gyroZ_temp/90.00;
-  // }
-
-  // readings["gyroX"] = String(gyroX);
-  // readings["gyroY"] = String(gyroY);
-  // readings["gyroZ"] = String(gyroZ);
-
-  // String jsonString = JSON.stringify(readings);
-  // return jsonString;
-  // return { g.gyro.x,g.gyro.y,g.gyro.z };
-// }
 
 // String getAccReadings() {
 //   mpu.getEvent(&a, &g, &temp);
@@ -224,7 +119,8 @@ void initWiFi() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(switchPin,INPUT);
+  pinMode(SWITCH_PIN,INPUT);
+  pinMode(BUTTON_PIN,INPUT_PULLUP);
   initWiFi();
   Wire.begin();
   initMPU();
@@ -232,28 +128,41 @@ void setup() {
 
 void loop() {
   // turn Gyroscope on/off
-  switchState = digitalRead(switchPin);
+  switchState = digitalRead(SWITCH_PIN);
+  button_state = digitalRead(BUTTON_PIN);
+  mpu.update();
+
+  if(prev_button_state == HIGH && button_state == LOW) {
+    Serial.println("The button is pressed");
+  } else if(prev_button_state == LOW && button_state == HIGH) {
+    Serial.println("The button is released");
+    OSCMessage msg("/button_reset");
+    Udp.beginPacket(outIp, outPort);
+    msg.add(button_state);
+    msg.send(Udp);
+    Udp.endPacket();
+    msg.empty();
+  }
+    
+  prev_button_state = button_state;
 
   if(switchState == HIGH) {
-    mpu.update();
-
     if (millis() > refresh_time) {
-
       // clamp
-      if ( mpu.getAngleX() >= 0 && mpu.getAngleX() <= limit_gyro_x ){
+      if (mpu.getAngleX() >= 0 && mpu.getAngleX() <= limit_gyro_x ){        
         remappedAngleX = map((abs(limit_gyro_x-mpu.getAngleX())), 0, limit_gyro_x, 0, 127);
       } else{
         remappedAngleX = 0;
       }
 
-      if (mpu.getAngleY() >= 0 && mpu.getAngleY() <= limit_gyro_y ){
+      if (mpu.getAngleY() <= 0 && mpu.getAngleY() >= limit_gyro_y ){
         remappedAngleY = map((abs(limit_gyro_y-mpu.getAngleY())), 0, limit_gyro_y, 0, 127);
       } else{
         remappedAngleY = 0;
       }
 
-      if (mpu.getAngleZ() >= 0 && mpu.getAngleZ() <= limit_gyro_z ){
-        remappedAngleZ = map((abs(mpu.getAngleZ())), 0, limit_gyro_z, 0, 127);
+      if (mpu.getAngleZ() <= 0 && mpu.getAngleZ() >= limit_gyro_z ){
+        remappedAngleZ = map((abs(limit_gyro_z-mpu.getAngleZ())), 0, limit_gyro_z, 0, 127);
       } else{
         remappedAngleZ = 0;
       }
@@ -284,7 +193,5 @@ void loop() {
       // events.send(getTemperature().c_str(),"temperature_reading",millis());
       // lastTimeTemperature = millis();
     // }
-
-   
   } 
 }

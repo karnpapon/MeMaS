@@ -341,29 +341,63 @@ s.waitForBoot{
 OSCdef.freeAll
 
 (
-var knobX, knobY, knobZ;
-w=Window("MPU6050", Rect(0, 600, 340, 120)).front;
+var knobX, knobY, knobZ, knobLpf, knobReso;
+w=Window("MPU6050", Rect(0, 600, 400, 120)).front;
 w.view.decorator = FlowLayout( w.view.bounds, 10@10, 20@5 );
 
-knobX=EZKnob(w,60@90," GYRO_X ",ControlSpec(0, 127, \lin, 1, 0));
-knobY=EZKnob(w,60@90," GYRO_Y ",ControlSpec(0, 127, \lin, 1, 0));
-knobZ=EZKnob(w,60@90," GYRO_Z ",ControlSpec(0, 127, \lin, 1, 0));
+knobX=EZKnob(w,60@90," GYRO_X ",ControlSpec(0, 127, \lin, 1, 0), {|ez|
+	var knobVal = (ez.value).linlin(0,127,0,1);
+	~dist.set(\dst, knobVal);
+	// distVal.postln;
+});
+knobY=EZKnob(w,60@90," GYRO_Y ",ControlSpec(0, 127, \lin, 1, 0), {|ez|
+	var knobVal = (ez.value).linlin(0,127,0,1);
+	~triode.set(\tri, knobVal);
+});
+knobZ=EZKnob(w,60@90," GYRO_Z ",ControlSpec(0, 127, \lin, 1, 0), {|ez|
+	var knobVal = (ez.value).linlin(0,127,0,1);
+	~shaper.set(\lo, knobVal);
+});
+
+knobLpf=EZKnob(w,60@90," CUTOFF ",ControlSpec(0, 1, \lin, 0.01, 0.5), {|ez|
+	~lpf.set(\cutoff, ez.value);
+});
+
+knobReso=EZKnob(w,60@90," RESON ",ControlSpec(0, 1, \lin, 0.01, 0.5), {|ez|
+	~lpf.set(\resonance, ez.value);
+});
 
 knobX.setColors(Color.grey, Color.white);
 knobY.setColors(Color.grey, Color.white);
 knobZ.setColors(Color.grey, Color.white);
+knobLpf.setColors(Color.grey, Color.white);
 
 OSCdef(\coordChanged, {
 	arg msg;
-	// msg.postln;
+	// msg[1].postln;
 	defer {
-		knobX.value_(msg[1]);
-		knobY.value_(127-msg[2] * 2);
-		knobZ.value_(msg[3] * 2)
+		knobX.value_(if(msg[1] == 0, 0, (msg[1])*2)).doAction;
+		knobY.value_(if(msg[2].neg == 0, 0, (127-(msg[2].neg))*2)).doAction;
+		knobZ.value_(if(msg[3].neg == 0, 0, (127-(msg[3].neg))*2)).doAction;
 	};
+
+	// randomly kick!
+	if(msg[1] != 0 && ((msg[1] % 20)==0), {
+		Synth(\drm, [
+			\dur, 1 / Pwrand([5, 10], [3, 8].normalizeSum, 1).asStream.value,
+			\tun, Pdup(Pexprand(1, 8), Pexprand(0.0001, 0.25)).asStream.value,
+			\fed, Pexprand(0.00001, 2000.0).asStream.value,
+			\amp, Pdup(Pexprand(1, 5), Pexprand(0.75, 2.0)).asStream.value,
+			\rel, Pexprand(Pkey(\dur) / (4/3), Pkey(\dur) * 64).asStream.value,
+			\pan, Pdup(Pexprand(1, 7), Pseq([0.5, 0.75, 1.0, 0.75, 0.5, 0.25, 0.0, 0.25], 1)).asStream.value,
+			\legato, Pwrand([Pkey(\dur) * 1.5, Pkey(\dur) * 16], [1, 2].normalizeSum, 1).asStream.value,
+			\sustain, Pdup(Pexprand(1, 3), Pexprand(0.1, 2.0)).asStream.value,
+			\out, ~srcMixerChannel.asBus
+		] ,target: ~srcMixerChannel.asTarget);
+	});
 }, '/gyro_read');
 );
 
+(21 % 10)
 
-
-(127-60).linlin(0,127,0,127)
+(127-60*2)

@@ -18,7 +18,7 @@ s.waitForBoot {
 
 ~sampler_engine.loadPreProcessedData("/Users/karnpaponboonput/Desktop/test-pref-data");
 
-~sampler_engine.external_mixer_(~srcMixerChannel);
+~sampler_engine.external_mixer_(~src2MixerChannel);
 ~sampler_engine.outbus_(2);
 
 // inject GUI and then start engine.
@@ -44,3 +44,6 @@ StaticText(w,Rect(0,0,70,20)).string_("distances:");
 kNearestDist = TextView(w, w.view.decorator.indentedRemaining.width@20).string_("").editable_(false);
 ~sampler_engine.listen(parent: w, kNearest: kNearest, kNearestDist: kNearestDist);
 )
+
+
+~triode.set(\tri, c.knobs.at(3).asMap);
