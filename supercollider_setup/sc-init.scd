@@ -1,5 +1,6 @@
 // [1]
 (
+s.quit;
 MIDIClient.init;
 // s.options.outDevice = "Scarlett 2i4 USB";
 // s.options.outDevice ="MacBook Pro Speakers";
@@ -14,7 +15,6 @@ s.waitForBoot{
 	// ~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/codes/opencv-pingpong-tracking/mapping_sounds/");
 
 	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
-
 }
 )
 
@@ -201,7 +201,7 @@ SynthDef(\metro, {
 var kNearest, kNearestDist;
 var buttonValue="OSC";
 
-w = Window("test",Rect(0,0,600,480+(20*2) ), resizable: false, border: false).front;
+w = Window("test",Rect(0,2,600,480+(20*2)+20 ), resizable: false, border: false).front;
 w.view.decorator = FlowLayout(w.view.bounds);
 ~sampler_engine.controller(parent: w);
 
@@ -223,6 +223,36 @@ kNearestDist = TextView(w, w.view.decorator.indentedRemaining.width@20).string_(
 ~sampler_engine.listen(parent: w, kNearest: kNearest, kNearestDist: kNearestDist);
 )
 
+// -------------tasks-------------------
+
+m = NetAddr("127.0.0.1", NetAddr.langPort);
+
+(
+var count = 0;
+// var inc = 0;
+Tdef(\sine_task, {
+	loop({
+		var x = 0.5;
+		var y = cos(count).linlin(-1,1,0,1);
+		m.sendMsg("/test_plotter/1",x,y);
+		count = count + (2pi/(64*4));
+		// inc = (inc + 0.01);
+		0.02.wait
+	})
+});
+)
+
+{
+	0.1.fold(0,1)
+}.fork
+
+	1.2.wrap(0,1)
+
+fold2(Line.kr(0.2,1,1))
+
+sin(1).class
+
+Tdef(\sine_task).stop;
 
 // ----------------MPU6050---------------
 (
