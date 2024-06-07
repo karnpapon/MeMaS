@@ -1,6 +1,6 @@
 ## MeMaS 
 
-MeMaS, (`/'mɛm-mə/`) (MEta-Manifold Audiovisual Synthesis), a set of tools for exploring a connection between image and sound, utilising computer vision with corpus-based concatinative synthesis
+MeMaS, (`/'mɛm-mə/`) (MEta-Manifold Audiovisual System), a set of tools for exploring a connection between image and sound, utilising computer vision with corpus-based concatinative synthesis
 
 - `/sound_map`: a SuperCollider tool for mapping ball movement to sound corpus.
 - `/python_ball_tracking`: a Python tool for tracking ping-pong ball by `OpenCV`

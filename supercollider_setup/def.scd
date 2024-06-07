@@ -8,13 +8,14 @@ Ndef(\nanite, {|nf=3, sf=0.0007, hpf=20000|
 
 Ndef(\nanite).group_(~src3MixerChannel.synthgroup)
 Ndef(\nanite).setBus(~src3MixerChannel.asBus)
-Ndef(\nanite).gui;
+Ndef(\nanite).release;
+Ndef(\nanite).fadeTime_(4);
 
 d = OFDinocap.ar(freq: 90).play
 
 Ndef(\sin, {|freq= 500| Splay.ar(SinOsc.ar(freq, 0, 0.4))})
 Ndef(\sin)[1] = \xset -> Pbind(\freq, (Pseq([0, 5, 2], inf)+60).midicps)
-Ndef(\sin).play
+Ndef(\sin).stop
 
 // + 0
 Ndef(\brus, {WhiteNoise.ar(0.5)})
@@ -90,21 +91,32 @@ Ndef(\demwi, {|rate=3, trigMin=18, trigMax=20, times=10, delay=0.05, decay=0.5, 
 )
 
 
-Ndef(\demwi).gui2
+Ndef(\demwi).stop
 // + (1)
 (
-Ndef(\depfm, {|freqMin=5, freqMax=10, mul=20, add=80, rate=0.5, modFreq=2100, index=0.3, amp=0.5|
-	var trig, seq, freq;
+Ndef(\depfm, {|freqMin=5, freqMax=10, mul=20, add=80, rate=0.5, modFreq=2100, index=0.3, amp=1|
+	var trig, seq, freq, sig;
 	trig = Impulse.kr(rate);
 	seq = Diwhite(freqMin, freqMax, inf).midicps;
 	freq = Demand.kr(trig, 0, seq);
 	HPF.ar(PMOsc.ar(LFCub.kr([freq, freq/2], 0, mul, add), modFreq, index) * 0.4 * amp, 30)
-}).play
+  // Out.ar(2, sig)
+})
 )
 
-Ndef(\depfm).fadeTime_(1.5)
-Ndef(\depfm).xset(\modFreq, 2500, \freqMax, 10, \freqMin, 3)
-Ndef(\depfm).gui
+Ndef(\depfm).release;
+Ndef(\depfm).fadeTime_(4)
+Ndef(\depfm).group_(~src3MixerChannel.synthgroup)
+Ndef(\depfm).setBus(~src3MixerChannel.asBus)
+
+(
+Ndef(\depfm)[1] = \xset -> Pbind(
+  \modFreq, (Pseq([400, 450,540, 460], inf)),
+  \dur, Pseq([ 0.5,1,0.25,0.25 ], inf)
+)
+)
+Ndef(\depfm).xset(\modFreq, 480, \freqMax, 10, \freqMin, 3)
+Ndef(\depfm).release
 
 // + 6
 (
@@ -119,7 +131,7 @@ Ndef(\bloded, { |freq=90, modFreq=11, harms=150|
 
 Ndef(\bloded).fadeTime_(1.5)
 Ndef(\bloded).xset(\freq, 120, \modFreq, 20)
-Ndef(\bloded).gui
+Ndef(\bloded).release
 
 // + 3
 (
@@ -164,7 +176,7 @@ var rand = Array.rand(size,from,to);
 		Dseq(rand, inf) * sd
 	).atan(SinOsc.ar(LFNoise0.ar(modFreq).range(modFrom, modTo)));
 	Splay.ar(waveform * amp);
-}).play
+})
 )
 
 Ndef(\opca).gui
@@ -196,6 +208,7 @@ Ndef(\hectn, {
 )
 
 
+Ndef(\hectn).release
 Ndef(\test).play
 Ndef(\test, {Splay.ar(WhiteNoise.ar(0.2))})
 Ndef(\test).filter(1, {|in| in*LFSaw.ar(4).max(0)})
