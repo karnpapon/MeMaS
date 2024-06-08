@@ -2,7 +2,7 @@
 (
 s.quit;
 MIDIClient.init;
-s.options.outDevice = "Scarlett 2i4 USB";
+// s.options.outDevice = "Scarlett 2i4 USB";
 // s.options.outDevice ="MacBook Pro Speakers";
 // s.options.outDevice ="BlackHole 16ch";
 s.options.numInputBusChannels = 0;
@@ -14,20 +14,15 @@ s.waitForBoot{
   s.plotTreeView(parent: windowView);
   a = ArturiaBeatStep();
 	~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/codes/MeMas/mapping_sounds/");
-	// ~sampler_engine = MeMaSEngine("/Users/karnpaponboonput/Desktop/samples/soundpharm/FoleyPerc - Loops/");
 }
 )
 
-// [2]: 
+// [2]: if this is your first time, this step required processing data first (see example: https://github.com/karnpapon/MeMaS/memas_sc/example.scd)
 (
 ~sampler_engine.loadPreProcessedData("/Users/karnpaponboonput/Desktop/codes/MeMas/mapping_sounds_data");
 )
 
-// test data
-// ~sampler_engine.loadPreProcessedData("/Users/karnpaponboonput/Desktop/test-pref-data");
-
-
-// [4]: setup SynthDef
+// [3]: setup SynthDef
 (
 SynthDef(\drm, {|out, pew=1, sustain=1, pan, fed=0, tun|
 	var env, sound, freq;
@@ -36,14 +31,6 @@ SynthDef(\drm, {|out, pew=1, sustain=1, pan, fed=0, tun|
 	env = EnvGen.ar(Env.linen(0.01, 0, 1, 1, -3), timeScale:sustain, doneAction:2);
 	sound = LPF.ar(SinOscFB.ar(XLine.ar(freq.expexp(10, 2000, 1000, 8000), freq, 0.025/pew), fed), 9000);
 	OffsetOut.ar(out, CleanPan.ar(sound, 2, pan, env))
-}).add;
-
-// testing sound
-SynthDef(\metro, {
-	var sig = SinOsc.ar(330,0);
-	var env = EnvGen.kr(Env.perc(0.01, 0.125, 1, -4), doneAction: 2);
-	sig = sig * env;
-	Out.ar(0, sig!2);
 }).add;
 )
 
@@ -230,7 +217,7 @@ Tdef(\sine_task, {
 Tdef(\sine_task).stop;
 Tdef(\sine_task).play(quant: 4);
 
-// ----------------MPU6050---------------
+// ----------------MIDI CONTROLLER---------------
 (
 var resetBtn, knobX, knobY, knobZ, knobLpf, knobReso, knobFreqShiftFreq, knobLpf2, knobPitchShift, knobPitchShiftSize, knobFreqShiftDryWet, knobPitchShiftDryWet, knobReverbTime;
 var knobs;

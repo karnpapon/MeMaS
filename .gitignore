@@ -3,5 +3,6 @@
 **/todo.md
 **/resources
 build
-/mapping_sounds
+/mapping_sounds/*
 **/node_modules
+/mapping_sounds_data/*
