@@ -2,7 +2,7 @@
 (
 s.quit;
 MIDIClient.init;
-// s.options.outDevice = "Scarlett 2i4 USB";
+s.options.outDevice = "Scarlett 2i4 USB";
 // s.options.outDevice ="MacBook Pro Speakers";
 // s.options.outDevice ="BlackHole 16ch";
 s.options.numInputBusChannels = 0;
@@ -218,9 +218,9 @@ var count = 0;
 var inc = 0;
 Tdef(\sine_task, {
 	loop({
-		var x = 0.5;
-		var y = cos(count).linlin(-1,1,0,1) * 0.25;
-		m.sendMsg("/test_plotter/1",x, y+0.5);
+		var x = sin(count).linlin(-1,1,0,1) * 0.5;
+		var y = cos(count).linlin(-1,1,0,1) * 0.5;
+		m.sendMsg("/test_plotter/1",x+0.25, y);
 		count = ( count + (2pi/(64*4)) );
 		0.01.wait
 	})
@@ -284,7 +284,7 @@ knobPitchShiftSize=EZKnob(w,80@90,"size",ControlSpec(0, 1, \lin, 0.01, 0.2), {|e
 	~pitchshift.set(\size, ez.value);
 }, layout: "vert2".asSymbol);
 
-knobReverbTime=EZKnob(w,80@90,"revtime",ControlSpec(0, 1, \lin, 0.01, 0.8), {|ez|
+knobReverbTime=EZKnob(w,80@90,"revtime",ControlSpec(0, 0.8, \lin, 0.01, 0.8), {|ez|
 	~rvb.set(\revtime, ez.value);
 }, layout: "vert2".asSymbol);
 

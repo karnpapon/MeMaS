@@ -12,19 +12,19 @@ Ndef(\nanite).release;
 Ndef(\nanite).fadeTime_(4);
 
 d = OFDinocap.ar(freq: 90).play
-
+Ndef(\sin).stop;
 Ndef(\sin, {|freq= 500| Splay.ar(SinOsc.ar(freq, 0, 0.4))})
 Ndef(\sin)[1] = \xset -> Pbind(\freq, (Pseq([0, 5, 2], inf)+60).midicps)
-Ndef(\sin).stop
+Ndef(\sin).fadeTime_(0)
 
 // + 0
 Ndef(\brus, {WhiteNoise.ar(0.5)})
 Ndef(\filter, {LPF.ar(Ndef.ar(\brus), 600)})
-Ndef(\filter).play
+Ndef(\filter).release
 Ndef(\filter).fadeTime= 5
 Ndef(\filter, {LPF.ar(Ndef.ar(\brus), 300)})
 Ndef(\fm).stop
-
+s.plotTree
 Ndef(\bromate).gui
 (
 // safe range: [freq: 70-2000]
@@ -46,9 +46,9 @@ Ndef(\silk, {
 }).play
 )
 
-Ndef(\depfm).gui
+Ndef(\silk).inspect
 
-Ndef(\demwi).gui
+Ndef(\vsaw).gui
 
 
 (

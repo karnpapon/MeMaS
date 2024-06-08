@@ -9,10 +9,12 @@ Ndef(\0, {|freqMin=5, freqMax=10, mul=20, add=80, rate=0.5, modFreq=2100, index=
 })
 )
 
+Ndef(\0).set(\modFreq, 400);
 Ndef(\0).release;
 Ndef(\0).fadeTime_(4)
 Ndef(\0).group_(~src3MixerChannel.synthgroup)
 Ndef(\0).setBus(~src3MixerChannel.asBus)
+
 
 
 // 1
@@ -139,5 +141,18 @@ Ndef(\6, {
 	HPF.ar(snd, 40, amp);
 	Splay.ar(snd * amp);
 });
+)
+
+// 7
+(
+Ndef(\osom, {|rate=2, trigMin=0.01, trigMax=10, shift=0.02, decay=0.1, initx=0.3, inity=0.1, initz=0.2, freq=600, bw=8, amp=1|
+		var trigx = Impulse.kr(rate);
+		var seqx = Diwhite(trigMin, trigMax, inf).midicps;
+		var trig = Demand.kr(trigx, 0, seqx);
+		var signal = Splay.ar(BBandStop.ar( Oregonator.ar(
+			Impulse.kr(trig), shift, decay, 0.1, 0.2,initx:initx, inity:inity.neg, initz:initz),
+		freq, bw, amp * 1.4));
+		signal = HPF.ar(signal, 40);
+	})
 )
 
