@@ -1,0 +1,3 @@
+[submodule "memas_sc"]
+	path = memas_sc
+	url = https://github.com/karnpapon/memas_sc.git
