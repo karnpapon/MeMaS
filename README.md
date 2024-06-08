@@ -5,15 +5,22 @@
 
 MeMaS, (`/'mɛm-mə/`) (MEta-Manifold Audiovisual System), a set of tools for exploring a connection between image and sound, utilising computer vision with [ corpus-based concatinative synthesis ](https://ieeexplore.ieee.org/document/4117932)
 
+
+## clone repo with submodule ([`memas_sc`](https://github.com/karnpapon/memas_sc))
+```
+git clone git clone --recurse-submodules https://github.com/karnpapon/MeMaS
+```
+
+## folder structure
 - `/memas_sc`: a SuperCollider extension.
 - `/python_cam_tracker`: a Python tool for tracking target by `OpenCV`
-- `/esp32_setup`: setup [esp32-camera](https://th.cytron.io/c-camera-image-sensor/p-esp32-cam-wireless-iot-vision-development-board) (the easiest way is using `Arduino IDE`)
+- `/mapping_sounds`: put any sound sources here
+- `/mapping_sounds_data`: a `mapping_sounds`'s data exported after analysing with `MeMaSEngine`
 - `/supercollider_setup`: setup SC for live-performance  ([please install required libraries](#prerequisites))
+- `/esp32_setup`: setup [esp32-camera](https://th.cytron.io/c-camera-image-sensor/p-esp32-cam-wireless-iot-vision-development-board) (the easiest way is using `Arduino IDE`)
 
 ## prerequisites
-
 some library can be installed easily with [`quarks`](https://doc.sccode.org/Guides/UsingQuarks.html)
-
 - [`cruciallib`](https://github.com/supercollider-quarks/cruciallib), ( install via [`quarks`](https://doc.sccode.org/Guides/UsingQuarks.html) ).
 - [`FluCoMa`](https://github.com/flucoma/flucoma-sc/releases/tag/1.0.7) library for SuperCollider.
 - [`ddwMixerChannel`](https://github.com/jamshark70/ddwMixerChannel) audio mixer library.
