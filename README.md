@@ -8,7 +8,7 @@ MeMaS, (`/'mɛm-mə/`) (MEta-Manifold Audiovisual System), a set of tools for ex
 
 ## clone repo with submodule ([`memas_sc`](https://github.com/karnpapon/memas_sc))
 ```
-git clone git clone --recurse-submodules https://github.com/karnpapon/MeMaS
+git clone --recurse-submodules https://github.com/karnpapon/MeMaS
 ```
 
 ## folder structure
